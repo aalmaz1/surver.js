@@ -1,0 +1,2175 @@
+<!DOCTYPE html>
+<html lang="ko">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>SW중심대학사업 종합 관리 시스템</title>
+  <style>
+    :root {
+      --bg-main: #f8fafc;
+      --bg-card: #ffffff;
+      --bg-subtle: #f1f5f9;
+      --border-light: #e2e8f0;
+      --border-subtle: #cbd5e1;
+
+      --text-title: #0f172a;
+      --text-body: #1e293b;
+      --text-muted: #64748b;
+      --text-dim: #94a3b8;
+
+      --primary: #2563eb;
+      --primary-hover: #1d4ed8;
+      --primary-active: #1e40af;
+      --primary-glow: rgba(37, 99, 235, 0.22);
+      --primary-light: #eff6ff;
+      --primary-border: #bfdbfe;
+
+      --success: #16a34a;
+      --success-bg: #f0fdf4;
+      --success-border: #bbf7d0;
+
+      --warning: #d97706;
+      --warning-bg: #fffbeb;
+      --warning-border: #fde68a;
+
+      --danger: #dc2626;
+      --danger-bg: #fef2f2;
+      --danger-border: #fecaca;
+
+      --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+      --shadow-card: 0 1px 3px 0 rgba(15, 23, 42, 0.06), 0 1px 2px -1px rgba(15, 23, 42, 0.04);
+      --shadow-hover: 0 6px 16px -2px rgba(15, 23, 42, 0.08), 0 2px 4px -1px rgba(15, 23, 42, 0.04);
+      --shadow-btn: 0 2px 6px -1px rgba(37, 99, 235, 0.28);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      background-color: var(--bg-main);
+      color: var(--text-body);
+      font-family: -apple-system, BlinkMacSystemFont, "Pretendard", "Segoe UI", Roboto, "Apple SD Gothic Neo", "Malgun Gothic", sans-serif;
+      font-size: 15px;
+      /* 크기 확대 */
+      line-height: 1.6;
+      letter-spacing: -0.2px;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    input,
+    select,
+    textarea,
+    button {
+      font-family: inherit;
+      font-size: 14.5px;
+      /* 크기 확대 */
+      color: var(--text-body);
+    }
+
+    /* 상단 스티키 헤더 (글래스 블러 효과 기교) */
+    .header-bar {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      background: rgba(255, 255, 255, 0.94);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--border-light);
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03);
+      padding: 0 28px;
+    }
+
+    .header-inner {
+      max-width: 1360px;
+      margin: 0 auto;
+      height: 68px;
+      /* 크기 확대 */
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .brand .logo-mark {
+      width: 34px;
+      height: 34px;
+      background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #ffffff;
+      font-weight: 800;
+      font-size: 16px;
+      box-shadow: 0 2px 8px rgba(37, 99, 235, 0.3);
+    }
+
+    .brand h1 {
+      font-size: 19px;
+      /* 크기 확대 */
+      font-weight: 700;
+      color: var(--text-title);
+      letter-spacing: -0.4px;
+    }
+
+    .brand .badge-pbl {
+      font-size: 12px;
+      padding: 3px 9px;
+      background: var(--primary-light);
+      color: var(--primary);
+      border: 1px solid var(--primary-border);
+      border-radius: 99px;
+      font-weight: 600;
+    }
+
+    .header-actions {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+
+    .user-info {
+      display: flex;
+      align-items: center;
+      gap: 9px;
+      font-size: 14px;
+      color: var(--text-muted);
+      background: var(--bg-subtle);
+      padding: 6px 14px;
+      border-radius: 20px;
+      border: 1px solid var(--border-light);
+    }
+
+    .user-info b {
+      color: var(--text-title);
+      font-weight: 600;
+    }
+
+    .role-pill {
+      font-size: 12px;
+      background: #ffffff;
+      border: 1px solid var(--border-subtle);
+      padding: 2px 8px;
+      border-radius: 12px;
+      color: var(--primary);
+      font-weight: 600;
+    }
+
+    /* 상단 탭 네비게이션 (Pill 버튼 스타일 기교) */
+    .nav-wrap {
+      background: #ffffff;
+      border-bottom: 1px solid var(--border-light);
+      padding: 8px 28px;
+      box-shadow: 0 1px 2px rgba(0, 0, 0, 0.02);
+    }
+
+    .nav-inner {
+      max-width: 1360px;
+      margin: 0 auto;
+      display: flex;
+      overflow-x: auto;
+      gap: 6px;
+      padding: 4px 0;
+    }
+
+    .nav-tab {
+      background: transparent;
+      border: 1px solid transparent;
+      padding: 9px 16px;
+      /* 크기 확대 */
+      font-size: 14.5px;
+      color: var(--text-muted);
+      cursor: pointer;
+      white-space: nowrap;
+      font-weight: 500;
+      border-radius: 8px;
+      transition: all 0.18s cubic-bezier(0.4, 0, 0.2, 1);
+      display: flex;
+      align-items: center;
+      gap: 7px;
+    }
+
+    .nav-tab:hover {
+      color: var(--text-title);
+      background: var(--bg-subtle);
+    }
+
+    .nav-tab.active {
+      background: var(--primary);
+      color: #ffffff;
+      font-weight: 600;
+      box-shadow: var(--shadow-btn);
+      border-color: var(--primary);
+    }
+
+    /* 본문 레이아웃 */
+    .main-container {
+      max-width: 1360px;
+      margin: 24px auto 60px;
+      padding: 0 28px;
+    }
+
+    /* 세련된 패널 카드 */
+    .panel {
+      background: var(--bg-card);
+      border: 1px solid var(--border-light);
+      border-radius: 12px;
+      /* 부드러운 모서리 기교 */
+      padding: 24px 28px;
+      /* 여백 확대 */
+      margin-bottom: 24px;
+      box-shadow: var(--shadow-card);
+      transition: transform 0.18s ease, box-shadow 0.18s ease;
+    }
+
+    .panel:hover {
+      box-shadow: var(--shadow-hover);
+    }
+
+    .panel-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 18px;
+      padding-bottom: 14px;
+      border-bottom: 1px solid var(--border-light);
+    }
+
+    .panel-header h2 {
+      font-size: 17px;
+      /* 크기 확대 */
+      font-weight: 700;
+      color: var(--text-title);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .panel-header .sub-desc {
+      font-size: 13.5px;
+      color: var(--text-muted);
+    }
+
+    /* KPI 지표 박스 */
+    .kpi-row {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+
+    .kpi-box {
+      background: #ffffff;
+      border: 1px solid var(--border-light);
+      border-radius: 12px;
+      padding: 20px 22px;
+      /* 크기 확대 */
+      box-shadow: var(--shadow-card);
+      position: relative;
+      overflow: hidden;
+      transition: transform 0.18s ease, box-shadow 0.18s ease;
+    }
+
+    .kpi-box::after {
+      content: "";
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 3px;
+      background: var(--border-subtle);
+      transition: background 0.2s;
+    }
+
+    .kpi-box:hover {
+      transform: translateY(-2px);
+      box-shadow: var(--shadow-hover);
+    }
+
+    .kpi-box:hover::after {
+      background: var(--primary);
+    }
+
+    .kpi-box small {
+      display: block;
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--text-muted);
+      margin-bottom: 6px;
+    }
+
+    .kpi-box .val {
+      font-size: 26px;
+      /* 크기 확대 */
+      font-weight: 800;
+      color: var(--text-title);
+      letter-spacing: -0.5px;
+    }
+
+    .kpi-box .val.pri {
+      color: var(--primary);
+    }
+
+    /* 테이블 디자인 (폰트 확대 & 스트라이프 & 부드러운 호버) */
+    .table-wrap {
+      overflow-x: auto;
+      border: 1px solid var(--border-light);
+      border-radius: 8px;
+      background: #ffffff;
+      box-shadow: var(--shadow-sm);
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      text-align: left;
+      font-variant-numeric: tabular-nums;
+    }
+
+    th,
+    td {
+      padding: 12px 16px;
+      /* 크기 확대 */
+      border-bottom: 1px solid var(--border-light);
+      white-space: nowrap;
+      font-size: 14px;
+      /* 크기 확대 */
+    }
+
+    th {
+      background-color: #f8fafc;
+      color: #334155;
+      font-weight: 600;
+      font-size: 13.5px;
+      border-bottom: 2px solid var(--border-light);
+      letter-spacing: -0.2px;
+    }
+
+    tbody tr:nth-child(even) {
+      background-color: #fafbfc;
+    }
+
+    tbody tr:hover {
+      background-color: #f1f7ff;
+    }
+
+    tbody tr:last-child td {
+      border-bottom: none;
+    }
+
+    .text-right {
+      text-align: right;
+    }
+
+    .text-center {
+      text-align: center;
+    }
+
+    /* 버튼 디자인 (리프트 효과 & 부드러운 그라데이션 기교) */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 7px;
+      padding: 9px 18px;
+      /* 크기 확대 */
+      border: 1px solid var(--border-subtle);
+      background: #ffffff;
+      color: var(--text-body);
+      border-radius: 7px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+      text-decoration: none;
+      box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+    }
+
+    .btn:hover {
+      background: var(--bg-subtle);
+      transform: translateY(-1px);
+      box-shadow: 0 3px 6px rgba(0, 0, 0, 0.08);
+    }
+
+    .btn:active {
+      transform: scale(0.98);
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, #2563eb, #1d4ed8);
+      border-color: #1d4ed8;
+      color: #ffffff;
+      box-shadow: var(--shadow-btn);
+    }
+
+    .btn-primary:hover {
+      background: linear-gradient(135deg, #1d4ed8, #1e40af);
+      box-shadow: 0 4px 12px rgba(37, 99, 235, 0.4);
+    }
+
+    .btn-sm {
+      padding: 5px 12px;
+      font-size: 13px;
+      border-radius: 5px;
+    }
+
+    .btn-success {
+      background: linear-gradient(135deg, #16a34a, #15803d);
+      border-color: #15803d;
+      color: #ffffff;
+      box-shadow: 0 2px 6px rgba(22, 163, 74, 0.25);
+    }
+
+    .btn-success:hover {
+      background: linear-gradient(135deg, #15803d, #166534);
+    }
+
+    .btn-danger {
+      background: linear-gradient(135deg, #dc2626, #b91c1c);
+      border-color: #b91c1c;
+      color: #ffffff;
+      box-shadow: 0 2px 6px rgba(220, 38, 38, 0.25);
+    }
+
+    .btn-danger:hover {
+      background: linear-gradient(135deg, #b91c1c, #991b1b);
+    }
+
+    /* 입력 필드 */
+    input[type="text"],
+    input[type="number"],
+    input[type="date"],
+    select,
+    textarea {
+      padding: 8px 13px;
+      /* 크기 확대 */
+      border: 1px solid var(--border-subtle);
+      border-radius: 7px;
+      background: #ffffff;
+      color: var(--text-body);
+      transition: border-color 0.15s, box-shadow 0.15s;
+    }
+
+    input:focus,
+    select:focus,
+    textarea:focus {
+      outline: none;
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px var(--primary-glow);
+    }
+
+    /* 필터 바 */
+    .filter-bar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      align-items: center;
+      margin-bottom: 18px;
+      background: var(--bg-subtle);
+      padding: 14px 18px;
+      border: 1px solid var(--border-light);
+      border-radius: 8px;
+    }
+
+    .form-group {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 14px;
+    }
+
+    .form-group label {
+      color: var(--text-muted);
+      font-weight: 600;
+    }
+
+    /* 상태 배지 (Indicator Dot 기교 적용) */
+    .tag {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      padding: 3px 10px;
+      border-radius: 99px;
+      font-size: 12.5px;
+      font-weight: 600;
+    }
+
+    .tag::before {
+      content: "";
+      display: inline-block;
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+    }
+
+    .tag-APPROVED,
+    .tag-PASS,
+    .tag-success {
+      background: var(--success-bg);
+      color: var(--success);
+      border: 1px solid var(--success-border);
+    }
+
+    .tag-APPROVED::before,
+    .tag-PASS::before,
+    .tag-success::before {
+      background: var(--success);
+    }
+
+    .tag-PENDING,
+    .tag-warning {
+      background: var(--warning-bg);
+      color: var(--warning);
+      border: 1px solid var(--warning-border);
+    }
+
+    .tag-PENDING::before,
+    .tag-warning::before {
+      background: var(--warning);
+    }
+
+    .tag-REJECTED,
+    .tag-FAIL,
+    .tag-danger {
+      background: var(--danger-bg);
+      color: var(--danger);
+      border: 1px solid var(--danger-border);
+    }
+
+    .tag-REJECTED::before,
+    .tag-FAIL::before,
+    .tag-danger::before {
+      background: var(--danger);
+    }
+
+    .tag-GAP,
+    .tag-INFO {
+      background: #f1f5f9;
+      color: #475569;
+      border: 1px solid var(--border-subtle);
+    }
+
+    .tag-GAP::before,
+    .tag-INFO::before {
+      background: #64748b;
+    }
+
+    /* 그리드 레이아웃 */
+    .grid-2 {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(380px, 1fr));
+      gap: 20px;
+    }
+
+    /* 알림 / 안내 문구 */
+    .notice-box {
+      background: #f0f7ff;
+      border-left: 4px solid var(--primary);
+      padding: 12px 18px;
+      border-radius: 0 8px 8px 0;
+      font-size: 13.5px;
+      color: #1e3a8a;
+      margin-bottom: 18px;
+    }
+
+    .notice-box strong {
+      color: #172554;
+    }
+
+    .empty-msg {
+      text-align: center;
+      padding: 36px;
+      color: var(--text-muted);
+      font-size: 14px;
+    }
+
+    /* 로그인 화면 */
+    .login-container {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: radial-gradient(circle at top, #f8fafc, #e2e8f0);
+      padding: 24px;
+    }
+
+    .login-card {
+      background: #ffffff;
+      border: 1px solid var(--border-light);
+      border-radius: 16px;
+      padding: 40px;
+      max-width: 500px;
+      width: 100%;
+      box-shadow: 0 10px 30px -5px rgba(15, 23, 42, 0.08);
+    }
+
+    .login-card h1 {
+      font-size: 22px;
+      font-weight: 800;
+      margin-bottom: 8px;
+      color: var(--text-title);
+      letter-spacing: -0.5px;
+    }
+
+    .login-card p {
+      font-size: 14px;
+      color: var(--text-muted);
+      margin-bottom: 24px;
+      line-height: 1.6;
+    }
+
+    .account-list {
+      display: grid;
+      gap: 10px;
+      margin: 18px 0;
+    }
+
+    .account-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 12px 16px;
+      border: 1px solid var(--border-light);
+      border-radius: 9px;
+      background: #ffffff;
+      cursor: pointer;
+      transition: all 0.18s ease;
+    }
+
+    .account-item:hover {
+      border-color: var(--primary);
+      background: var(--primary-light);
+      transform: translateX(3px);
+      box-shadow: var(--shadow-sm);
+    }
+
+    .account-item .id-role {
+      display: flex;
+      gap: 9px;
+      align-items: center;
+    }
+
+    .account-item .id-role b {
+      font-size: 14.5px;
+      color: var(--text-title);
+    }
+
+    .account-item .desc {
+      font-size: 12.5px;
+      color: var(--text-muted);
+      margin-top: 2px;
+    }
+
+    /* SVG 차트 스타일 */
+    svg text {
+      fill: var(--text-body);
+      font-size: 13px;
+      font-family: inherit;
+    }
+
+    svg .muted-text {
+      fill: var(--text-muted);
+      font-size: 12px;
+    }
+
+    @media (max-width: 820px) {
+      .header-inner {
+        flex-direction: column;
+        height: auto;
+        padding: 14px 0;
+        gap: 10px;
+      }
+
+      .grid-2 {
+        grid-template-columns: 1fr;
+      }
+
+      .kpi-row {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <div id="app"></div>
+
+  <script>
+    // ===== 프론트엔드 상태 관리 =====
+    const $ = (selector, parent = document) => parent.querySelector(selector);
+    const $$ = (selector, parent = document) => [...parent.querySelectorAll(selector)];
+
+    let currentUser = null;
+    let appMeta = null;
+    let currentTab = "home";
+
+    const STATUS_MAP = {
+      APPROVED: "승인 완료",
+      PENDING: "승인 대기",
+      REJECTED: "반려됨",
+      CANCELLED: "취소됨"
+    };
+
+    const ACCOUNTS = [
+      { id: "student01", name: "김민준", role: "학생", desc: "본인 정보 조회 · 정보 변경 요청 · 마일리지 신청 · 설문 응답" },
+      { id: "admin01", name: "일반관리자", role: "일반관리자", desc: "전체 학생 조회 · 변경요청/마일리지 승인 (role_policy APPROVE)" },
+      { id: "admin02", name: "최고관리자", role: "최고관리자", desc: "지출 승인(예산 한도 검사) · 변경 감사로그(Q12) · 전체 총괄" },
+      { id: "prof01", name: "김교수", role: "교수", desc: "예산 항목별 지출 신청 (일반/학생인건비)" }
+    ];
+
+    const FIELDS_MAP = [
+      ["phone", "연락처 (phone)"],
+      ["email", "이메일 (email)"],
+      ["college", "단과대학 (college)"],
+      ["department", "학과 (department)"],
+      ["major_type", "전공유형 (major_type: 공학/자연)"],
+      ["campus", "캠퍼스 (campus)"],
+      ["grade", "학년 (grade: 1~6)"],
+      ["academic_status", "학적상태 (academic_status: 재학/휴학/졸업)"],
+      ["admission_type", "입학유형 (admission_type: 신입학/편입학)"],
+      ["admission_date", "입학일 (admission_date: YYYY-MM-DD)"]
+    ];
+
+    // ===== API 통신 유틸리티 =====
+    async function api(path, options = {}) {
+      try {
+        const res = await fetch(path, {
+          headers: { "Content-Type": "application/json" },
+          ...options,
+          body: options.body ? JSON.stringify(options.body) : undefined
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || "요청 처리에 실패하였습니다.");
+        return data;
+      } catch (err) {
+        throw err;
+      }
+    }
+    const get = (url) => api(url);
+    const post = (url, body) => api(url, { method: "POST", body });
+
+    const won = (num) => Number(num || 0).toLocaleString("ko-KR") + "원";
+    const pct = (num) => Number(num || 0).toFixed(2) + "%";
+
+    function fmtDate(val) {
+      if (!val) return "-";
+      const s = String(val).trim();
+      if (s.includes("T")) {
+        const d = new Date(s);
+        if (!isNaN(d.getTime())) {
+          const p = (n) => String(n).padStart(2, "0");
+          return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())} ${p(d.getHours())}:${p(d.getMinutes())}:${p(d.getSeconds())}`;
+        }
+      }
+      return s.replace(/\.\d+Z?$/, "");
+    }
+
+    function tbl(headers, rows, formatter) {
+      if (!rows || !rows.length) {
+        return '<div class="empty-msg">조회된 데이터가 없습니다.</div>';
+      }
+      return `<div class="table-wrap"><table>
+    <thead><tr>${headers.map(h => `<th>${h}</th>`).join("")}</tr></thead>
+    <tbody>${rows.map(r => `<tr>${formatter(r).map(col => `<td>${col !== null && col !== undefined ? col : "-"}</td>`).join("")}</tr>`).join("")}</tbody>
+  </table></div>`;
+    }
+
+    // ===== 1. 로그인 렌더링 =====
+    function renderLogin() {
+      $("#app").innerHTML = `
+    <div class="login-container">
+      <div class="login-card">
+        <div style="display:flex; align-items:center; gap:10px; margin-bottom:12px;">
+          <div style="width:36px; height:36px; background:linear-gradient(135deg,#3b82f6,#1d4ed8); border-radius:8px; color:#fff; display:flex; align-items:center; justify-content:center; font-weight:800; font-size:18px;">SW</div>
+          <span style="font-size:13px; font-weight:700; color:var(--primary); background:var(--primary-light); padding:2px 8px; border-radius:99px;">PBL Mission 2</span>
+        </div>
+        <h1>SW중심대학사업 관리 포털</h1>
+        <p>01_schema, 02_seed, 03_queries(Q01~Q12), 04_tests 기능이 완벽 연계된 통합 학사 행정 시스템입니다. 시드 계정을 선택하여 로그인하세요.</p>
+        
+        <div style="margin-bottom:18px;">
+          <label style="display:block; font-size:13.5px; font-weight:600; color:var(--text-title); margin-bottom:6px;">사용자 로그인 ID</label>
+          <div style="display:flex; gap:10px;">
+            <input id="loginIdInput" type="text" value="admin01" style="flex:1;">
+            <button class="btn btn-primary" id="btnDoLogin">로그인</button>
+          </div>
+        </div>
+
+        <div style="font-size:13px; font-weight:600; color:var(--text-muted); margin-bottom:8px;">빠른 역할 체험 계정 선택</div>
+        <div class="account-list">
+          ${ACCOUNTS.map(a => `
+            <div class="account-item" data-id="${a.id}">
+              <div>
+                <div class="id-role"><b>${a.id}</b> <span class="role-pill">${a.role}</span> <span style="font-size:13px; color:var(--text-muted);">(${a.name})</span></div>
+                <div class="desc">${a.desc}</div>
+              </div>
+              <span class="btn btn-sm">선택</span>
+            </div>
+          `).join("")}
+        </div>
+        <div style="font-size:12.5px; color:var(--text-muted); text-align:center; margin-top:14px;">
+          별도의 비밀번호 없이 role_policy 인가 규칙에 의해 접근 권한이 자동 통제됩니다.
+        </div>
+      </div>
+    </div>
+  `;
+
+      $$(".account-item").forEach(el => {
+        el.onclick = () => {
+          $("#loginIdInput").value = el.dataset.id;
+          doLogin();
+        };
+      });
+      $("#btnDoLogin").onclick = doLogin;
+      $("#loginIdInput").onkeydown = (e) => { if (e.key === "Enter") doLogin(); };
+    }
+
+    async function doLogin() {
+      const loginId = $("#loginIdInput").value.trim();
+      if (!loginId) return alert("로그인 ID를 입력하세요.");
+      try {
+        currentUser = await post("/api/login", { login_id: loginId });
+        appMeta = await get("/api/meta");
+        currentTab = "home";
+        renderMainApp();
+      } catch (err) {
+        alert(err.message);
+      }
+    }
+
+    // ===== 2. 메인 애플리케이션 프레임 =====
+    function renderMainApp() {
+      const p = currentUser.permissions;
+      const navTabs = [
+        { id: "home", label: "시스템 개요 (홈)" },
+        { id: "student", label: "학생 정보 (Q01·Q02)" },
+        { id: "topcit", label: "TOPCIT 성과 (Q03·Q04)" },
+        { id: "mileage", label: "마일리지 장학 (Q05~Q07)" },
+        { id: "budget", label: "예산·지출 관리 (Q08·Q09)" },
+        { id: "survey", label: "만족도 분석 (Q10·Q11)" },
+        ...(p.read_log ? [{ id: "log", label: "감사 로그 (Q12)" }] : []),
+        { id: "dashboard", label: "사업 성과 대시보드" },
+        { id: "tests", label: "시스템 검증 (04_tests)" }
+      ];
+
+      $("#app").innerHTML = `
+    <header class="header-bar">
+      <div class="header-inner">
+        <div class="brand">
+          <div class="logo-mark">SW</div>
+          <div>
+            <h1>SW중심대학사업 관리 시스템</h1>
+          </div>
+          <span class="badge-pbl">PBL Mission 2</span>
+        </div>
+        <div class="header-actions">
+          <div class="user-info">
+            <span>접속자: <b>${currentUser.user_name}</b></span>
+            <span class="role-pill">${currentUser.roles.join(", ")}</span>
+          </div>
+          <select id="quickSwitch" style="font-size:13.5px; padding:6px 10px;">
+            <option value="">빠른 역할 전환...</option>
+            ${ACCOUNTS.map(a => `<option value="${a.id}" ${currentUser.login_id === a.id ? "selected" : ""}>${a.id} (${a.role} ${a.name})</option>`).join("")}
+          </select>
+          <button class="btn btn-sm" id="btnResetSeed" title="02_seed.sql 초기 데이터 상태로 복구">시드 초기화</button>
+          <button class="btn btn-sm" id="btnLogout">로그아웃</button>
+        </div>
+      </div>
+    </header>
+
+    <nav class="nav-wrap">
+      <div class="nav-inner">
+        ${navTabs.map(t => `<button class="nav-tab ${currentTab === t.id ? "active" : ""}" data-tab="${t.id}">${t.label}</button>`).join("")}
+      </div>
+    </nav>
+
+    <main class="main-container" id="mainContent"></main>
+  `;
+
+      // 이벤트 바인딩
+      $$(".nav-tab").forEach(tab => {
+        tab.onclick = () => {
+          currentTab = tab.dataset.tab;
+          renderMainApp();
+        };
+      });
+
+      $("#quickSwitch").onchange = async (e) => {
+        if (!e.target.value) return;
+        try {
+          currentUser = await post("/api/login", { login_id: e.target.value });
+          appMeta = await get("/api/meta");
+          renderMainApp();
+        } catch (err) { alert(err.message); }
+      };
+
+      $("#btnResetSeed").onclick = async () => {
+        if (!confirm("모든 데이터를 02_seed.sql 초기 시드 상태로 되돌리시겠습니까?")) return;
+        try {
+          await post("/api/reset", {});
+          appMeta = await get("/api/meta");
+          alert("시드 데이터가 초기 상태로 복구되었습니다.");
+          renderMainApp();
+        } catch (err) { alert(err.message); }
+      };
+
+      $("#btnLogout").onclick = () => {
+        currentUser = null;
+        renderLogin();
+      };
+
+      // 탭 화면 호출
+      const views = {
+        home: viewHome,
+        student: viewStudent,
+        topcit: viewTopcit,
+        mileage: viewMileage,
+        budget: viewBudget,
+        survey: viewSurvey,
+        log: viewLog,
+        dashboard: viewDashboard,
+        tests: viewTests
+      };
+      (views[currentTab] || viewHome)();
+    }
+
+    // ===== 3. [홈/개요] 화면 =====
+    async function viewHome() {
+      const container = $("#mainContent");
+      container.innerHTML = `
+    <div class="kpi-row">
+      <div class="kpi-box">
+        <small>현재 로그인 계정</small>
+        <div class="val pri">${currentUser.user_name}</div>
+        <div style="font-size:13px; color:var(--text-muted); margin-top:4px;">역할: <b>${currentUser.roles.join(", ")}</b> (${currentUser.login_id})</div>
+      </div>
+      <div class="kpi-box">
+        <small>학생정보 조회 권한</small>
+        <div class="val">${currentUser.permissions.view_all_students ? "전체 학생 (ALL)" : (currentUser.student_no ? "본인 정보만 (OWN)" : "조회 권한 없음")}</div>
+        <div style="font-size:13px; color:var(--text-muted); margin-top:4px;"><code>fn_can_view_student()</code> 정책 검증</div>
+      </div>
+      <div class="kpi-box">
+        <small>승인/처리 권한 (role_policy)</small>
+        <div class="val" style="font-size:18px; font-weight:700;">
+          ${[
+          currentUser.permissions.approve_change && "정보변경",
+          currentUser.permissions.approve_mileage && "마일리지",
+          currentUser.permissions.approve_expenditure && "지출승인"
+        ].filter(Boolean).join(" · ") || "일반 열람 권한"}
+        </div>
+        <div style="font-size:13px; color:var(--text-muted); margin-top:4px;">프로시저 process_* 트랜잭션 인가</div>
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="panel-header">
+        <h2>SW중심대학사업 관리 시스템 기능 맵 (SQL 01~04 매핑)</h2>
+        <span class="sub-desc">01_schema · 02_seed · 03_queries · 04_tests 완벽 지원</span>
+      </div>
+      <div class="grid-2">
+        <div style="border:1px solid var(--border-light); padding:18px; border-radius:8px; background:var(--bg-main);">
+          <h3 style="font-size:15px; font-weight:700; margin-bottom:8px; color:var(--primary);">01_schema & 02_seed (DB 스키마 및 무결성 제약)</h3>
+          <p style="font-size:13.5px; color:var(--text-muted); line-height:1.7;">
+            • 계정·역할 및 role_policy 동적 정책 인가 체계 (fn_has_permission, fn_can_view_student)<br>
+            • 학적 변경 승인 프로시저 (process_student_change_request)<br>
+            • 마일리지 신청 승인 프로시저 (process_mileage_application)<br>
+            • 지출 승인 및 예산 한도 실시간 검사 프로시저 (process_expenditure)<br>
+            • 모든 승인/반려 시 change_log 감사 이력 자동 누적
+          </p>
+        </div>
+        <div style="border:1px solid var(--border-light); padding:18px; border-radius:8px; background:var(--bg-main);">
+          <h3 style="font-size:15px; font-weight:700; margin-bottom:8px; color:var(--primary);">03_queries (Q01 ~ Q12 분석 쿼리 기능)</h3>
+          <p style="font-size:13.5px; color:var(--text-muted); line-height:1.7;">
+            • Q01/Q02: 특정 학생 정보 (권한 통제) 및 수정 요청 이력<br>
+            • Q03/Q04: TOPCIT 응시 성과 및 이전 회차 대비 점수 증감(LAG 함수)<br>
+            • Q05/Q06/Q07: 마일리지 적립 현황, 기간별 실적, 대기 신청<br>
+            • Q08/Q09: 예산 집행률 및 교수별·지출주체별 지출 통계<br>
+            • Q10/Q11/Q12: 완료응답 기준 만족도 분석, 익명 의견, 감사 로그
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="panel-header">
+        <h2>역할별 주요 업무 가이드</h2>
+        <span class="sub-desc">상단 [빠른 역할 전환] 드롭다운을 통해 각 역할별 권한을 즉시 체험하실 수 있습니다</span>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr><th>역할</th><th>인가 권한 (role_policy)</th><th>수행 가능한 업무</th><th>체험 계정</th></tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><b>학생</b></td>
+              <td><span class="tag tag-INFO">OWN (본인 전용)</span></td>
+              <td>본인 기본정보 조회(Q01), 학적 변경 요청(Q02), 마일리지 신청, 만족도 설문 참여</td>
+              <td>student01 ~ student10</td>
+            </tr>
+            <tr>
+              <td><b>일반관리자</b></td>
+              <td><span class="tag tag-PASS">ALL (전체 조회/승인)</span></td>
+              <td>전체 학생 정보 조회(Q01), 학적변경 승인/반려, 마일리지 신청 승인/반려</td>
+              <td>admin01</td>
+            </tr>
+            <tr>
+              <td><b>최고관리자</b></td>
+              <td><span class="tag tag-PASS">ALL (지출 승인/감사)</span></td>
+              <td>지출 신청 승인(예산 한도 초과 시 실시간 차단), 감사 로그 조회(Q12), 전체 시스템 통계</td>
+              <td>admin02</td>
+            </tr>
+            <tr>
+              <td><b>교수</b></td>
+              <td><span class="tag tag-warning">EXP_CREATE (지출신청)</span></td>
+              <td>사업별 비목 지출 신청 (일반 지출 및 학생 연구 인건비 지정)</td>
+              <td>prof01 ~ prof03</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  `;
+    }
+
+    // ===== 4. [학생 정보] (Q01·Q02) =====
+    async function viewStudent() {
+      const container = $("#mainContent");
+      const defaultSno = currentUser.student_no || "20240001";
+      const isStudent = !!currentUser.student_id;
+      const canApprove = currentUser.permissions.approve_change;
+
+      container.innerHTML = `
+    <div class="panel">
+      <div class="panel-header">
+        <h2>학생 기본정보 조회 (Q01)</h2>
+        <span class="sub-desc"><code>fn_can_view_student()</code> 함수 적용: 학생은 본인만, 관리자는 전체 학생 조회</span>
+      </div>
+      <div class="filter-bar">
+        <div class="form-group">
+          <label>조회 학번</label>
+          <input type="text" id="inputSno" value="${defaultSno}" placeholder="예: 20240001">
+        </div>
+        <button class="btn btn-primary" id="btnQueryQ01">조회 실행</button>
+      </div>
+      <div id="q01Result"></div>
+    </div>
+
+    ${isStudent ? `
+    <div class="panel">
+      <div class="panel-header">
+        <h2>학적 정보 변경 신청</h2>
+        <span class="sub-desc">학생 본인의 정보를 수정 요청합니다 (관리자 승인 시 DB 즉시 반영)</span>
+      </div>
+      <form id="formChangeReq" style="max-width:600px; display:grid; gap:14px;">
+        <div class="form-group">
+          <label style="width:110px;">변경 항목</label>
+          <select id="reqField" style="flex:1;">
+            ${FIELDS_MAP.map(([v, t]) => `<option value="${v}">${t}</option>`).join("")}
+          </select>
+        </div>
+        <div class="form-group">
+          <label style="width:110px;">새로운 값</label>
+          <input type="text" id="reqNewVal" placeholder="변경할 내용을 입력하세요" style="flex:1;" required>
+        </div>
+        <div>
+          <button type="submit" class="btn btn-primary">변경 요청 제출</button>
+        </div>
+      </form>
+    </div>` : ""}
+
+    ${canApprove ? `
+    <div class="panel">
+      <div class="panel-header">
+        <h2>승인 대기 요청 목록 (process_student_change_request)</h2>
+        <span class="sub-desc">관리자 권한: 승인 시 student 테이블에 즉시 반영되며 change_log가 기록됩니다</span>
+      </div>
+      <div id="pendingChangesWrap"></div>
+    </div>` : ""}
+
+    <div class="panel">
+      <div class="panel-header">
+        <h2>학생정보 수정 요청 및 처리 이력 (Q02)</h2>
+        <span class="sub-desc">신청 항목, 이전 값, 요청 값, 처리 상태 및 코멘트</span>
+      </div>
+      <div id="q02Result"></div>
+    </div>
+  `;
+
+      // Q01 조회
+      async function loadQ01() {
+        const sno = $("#inputSno").value.trim();
+        const wrap = $("#q01Result");
+        try {
+          const rows = await get(`/api/q01?user_id=${currentUser.user_id}&student_no=${encodeURIComponent(sno)}`);
+          if (!rows.length) {
+            wrap.innerHTML = `<div class="notice-box" style="border-left-color:var(--warning); background:#fffbeb; color:#92400e;">
+          조회 결과가 없습니다. (해당 학번이 존재하지 않거나, <strong>fn_can_view_student</strong> 권한 통제에 의해 타 학생 정보 열람이 차단되었습니다.)
+        </div>`;
+            return;
+          }
+          wrap.innerHTML = tbl(
+            ["학번", "성명", "이메일", "단과대학", "학과", "전공유형", "캠퍼스", "학년", "학적", "입학유형", "입학일", "연락처"],
+            rows,
+            r => [r.student_no, `<b>${r.user_name}</b>`, r.email, r.college, r.department, r.major_type, r.campus, r.grade + "학년", r.academic_status, r.admission_type, r.admission_date ? String(r.admission_date).slice(0, 10) : "-", r.phone]
+          );
+        } catch (e) {
+          wrap.innerHTML = `<p style="color:var(--danger);">${e.message}</p>`;
+        }
+      }
+
+      // Q02 이력 조회
+      async function loadQ02() {
+        const sno = $("#inputSno").value.trim();
+        const wrap = $("#q02Result");
+        try {
+          const rows = await get(`/api/q02?student_no=${encodeURIComponent(sno)}`);
+          wrap.innerHTML = tbl(
+            ["요청ID", "학번", "성명", "항목", "변경 전 값", "새로운 요청 값", "처리 상태", "처리자", "요청일시", "처리일시", "처리 코멘트"],
+            rows,
+            r => [
+              r.request_id, r.student_no, r.user_name, r.requested_field,
+              r.old_value !== null ? r.old_value : `<span style="color:var(--text-muted);">(NULL)</span>`,
+              `<b>${r.new_value}</b>`,
+              `<span class="tag tag-${r.request_status}">${STATUS_MAP[r.request_status] || r.request_status}</span>`,
+              r.processor, fmtDate(r.requested_at), fmtDate(r.processed_at), r.process_comment
+            ]
+          );
+        } catch (e) {
+          wrap.innerHTML = `<p style="color:var(--danger);">${e.message}</p>`;
+        }
+      }
+
+      // 대기 목록 로드 (관리자용)
+      async function loadPending() {
+        if (!canApprove) return;
+        const wrap = $("#pendingChangesWrap");
+        try {
+          const list = await get("/api/pending-changes");
+          if (!list.length) {
+            wrap.innerHTML = '<div class="empty-msg">현재 대기 중인 변경 요청이 없습니다.</div>';
+            return;
+          }
+          wrap.innerHTML = tbl(
+            ["요청ID", "학번", "성명", "변경항목", "현재값", "요청값", "신청일시", "승인/반려 처리"],
+            list,
+            r => [
+              r.request_id, r.student_no, r.user_name, r.requested_field, r.old_value, `<b>${r.new_value}</b>`, fmtDate(r.requested_at),
+              `<button class="btn btn-sm btn-success" data-action="approve" data-id="${r.request_id}">승인</button>
+           <button class="btn btn-sm btn-danger" data-action="reject" data-id="${r.request_id}">반려</button>`
+            ]
+          );
+
+          wrap.onclick = async (e) => {
+            const btn = e.target.closest("button[data-action]");
+            if (!btn) return;
+            const id = Number(btn.dataset.id);
+            const decision = btn.dataset.action === "approve" ? "APPROVED" : "REJECTED";
+            const comment = prompt("처리 코멘트를 입력하세요:", decision === "APPROVED" ? "확인 후 승인 완료" : "서류 미비로 반려");
+            if (comment === null) return;
+            try {
+              await post(`/api/process-change?user_id=${currentUser.user_id}`, {
+                request_id: id,
+                decision: decision,
+                comment: comment
+              });
+              alert(`요청 #${id} 건이 ${decision === "APPROVED" ? "승인" : "반려"} 처리되었습니다.`);
+              loadPending();
+              loadQ01();
+              loadQ02();
+            } catch (err) { alert(err.message); }
+          };
+        } catch (e) { wrap.innerHTML = `<p style="color:var(--danger);">${e.message}</p>`; }
+      }
+
+      $("#btnQueryQ01").onclick = () => { loadQ01(); loadQ02(); };
+
+      if (isStudent && $("#formChangeReq")) {
+        $("#formChangeReq").onsubmit = async (e) => {
+          e.preventDefault();
+          try {
+            await post(`/api/change-request?user_id=${currentUser.user_id}`, {
+              field: $("#reqField").value,
+              new_value: $("#reqNewVal").value.trim()
+            });
+            alert("학적 변경 요청이 접수되었습니다.");
+            $("#reqNewVal").value = "";
+            loadQ02();
+            if (canApprove) loadPending();
+          } catch (err) { alert(err.message); }
+        };
+      }
+
+      loadQ01();
+      loadQ02();
+      loadPending();
+    }
+
+    // ===== 5. [TOPCIT 성과 관리] (Q03·Q04) =====
+    async function viewTopcit() {
+      const container = $("#mainContent");
+      const defaultSno = currentUser.student_no || "20240001";
+
+      container.innerHTML = `
+    <div class="panel">
+      <div class="panel-header">
+        <h2>학생별 TOPCIT 점수 추이 및 이전 대비 변화량 (Q03)</h2>
+        <span class="sub-desc">SQL <code>LAG()</code> 윈도우 함수를 활용하여 이전 회차 대비 점수 증감(score_change)을 산출합니다</span>
+      </div>
+      <div class="filter-bar">
+        <div class="form-group">
+          <label>조회 학번</label>
+          <input type="text" id="topcitSno" value="${defaultSno}">
+        </div>
+        <button class="btn btn-primary" id="btnQueryQ03">조회 실행</button>
+      </div>
+      <div id="q03Result"></div>
+    </div>
+
+    <div class="panel">
+      <div class="panel-header">
+        <h2>회차·학과·학년별 평균 및 응시자 수 통계 (Q04)</h2>
+        <span class="sub-desc"><code>GROUP BY e.exam_id, s.department, s.grade</code> 기반 성과 집계</span>
+      </div>
+      <div id="q04Result"></div>
+    </div>
+  `;
+
+      async function loadQ03() {
+        const sno = $("#topcitSno").value.trim();
+        try {
+          const rows = await get(`/api/q03?student_no=${encodeURIComponent(sno)}`);
+          $("#q03Result").innerHTML = tbl(
+            ["학번", "성명", "응시 회차", "응시 일자", "취득 점수 (0~1000)", "이전 응시 대비 증감"],
+            rows,
+            r => {
+              let diffHtml = "-";
+              if (r.score_change !== null) {
+                if (r.score_change > 0) diffHtml = `<span style="color:var(--success); font-weight:700;">+${r.score_change}점 ▲</span>`;
+                else if (r.score_change < 0) diffHtml = `<span style="color:var(--danger); font-weight:700;">${r.score_change}점 ▼</span>`;
+                else diffHtml = `<span>0점 (동일)</span>`;
+              }
+              return [r.student_no, r.user_name, r.exam_round, r.exam_date, `<b style="font-size:15px;">${r.score}점</b>`, diffHtml];
+            }
+          );
+        } catch (e) { $("#q03Result").innerHTML = `<p style="color:var(--danger);">${e.message}</p>`; }
+      }
+
+      async function loadQ04() {
+        try {
+          const rows = await get("/api/q04");
+          $("#q04Result").innerHTML = tbl(
+            ["시험 회차", "학과", "학년", "응시자 수", "평균 점수"],
+            rows,
+            r => [r.exam_round, r.department, r.grade + "학년", `${r.examinee_count}명`, `<b style="color:var(--primary); font-size:15px;">${r.average_score}점</b>`]
+          );
+        } catch (e) { $("#q04Result").innerHTML = `<p style="color:var(--danger);">${e.message}</p>`; }
+      }
+
+      $("#btnQueryQ03").onclick = loadQ03;
+      loadQ03();
+      loadQ04();
+    }
+
+    // ===== 6. [마일리지 장학 관리] (Q05·Q06·Q07) =====
+    async function viewMileage() {
+      const container = $("#mainContent");
+      const p = currentUser.permissions;
+
+      container.innerHTML = `
+    ${p.create_mileage ? `
+    <div class="panel">
+      <div class="panel-header">
+        <h2>프로그램 마일리지 신청</h2>
+        <span class="sub-desc">학생 1인당 동일 프로그램 1회 신청 가능 (증빙 필수 여부 확인)</span>
+      </div>
+      <form id="formMileageApp" style="max-width:600px; display:grid; gap:14px;">
+        <div class="form-group">
+          <label style="width:120px;">프로그램 선택</label>
+          <select id="selProgram" style="flex:1;">
+            ${appMeta.programs.map(pr => `<option value="${pr.program_id}">${pr.program_name} (+${pr.mileage_points}점${pr.evidence_required ? " · 증빙필수" : ""})</option>`).join("")}
+          </select>
+        </div>
+        <div class="form-group">
+          <label style="width:120px;">증빙 파일명</label>
+          <input type="text" id="mileageFile" placeholder="예: certificate_student01.pdf" style="flex:1;">
+        </div>
+        <div>
+          <button type="submit" class="btn btn-primary">마일리지 신청</button>
+        </div>
+      </form>
+      <div style="margin-top:20px;">
+        <h3 style="font-size:14px; font-weight:700; margin-bottom:10px;">나의 마일리지 신청 현황</h3>
+        <div id="myMileageWrap"></div>
+      </div>
+    </div>` : ""}
+
+    ${p.approve_mileage ? `
+    <div class="panel">
+      <div class="panel-header">
+        <h2>대기 마일리지 신청 승인/반려 (Q07 · process_mileage_application)</h2>
+        <span class="sub-desc">관리자 권한: 신청 증빙을 검토하고 승인 시 누적 마일리지에 합산됩니다</span>
+      </div>
+      <div id="pendingMileageWrap"></div>
+    </div>` : ""}
+
+    <div class="panel">
+      <div class="panel-header">
+        <h2>학생별 누적 마일리지 현황 (Q05)</h2>
+        <span class="sub-desc">승인(APPROVED)된 건만 합산하며, 미적립 학생도 0점으로 모두 표시됩니다</span>
+      </div>
+      <div id="q05Result"></div>
+    </div>
+
+    <div class="panel">
+      <div class="panel-header">
+        <h2>프로그램·기간별 승인 마일리지 실적 (Q06)</h2>
+        <span class="sub-desc">특정 프로그램 및 신청 기간(applied_at) 기준 승인 내역 및 합계 통계</span>
+      </div>
+      <div class="filter-bar">
+        <div class="form-group">
+          <label>프로그램</label>
+          <select id="q6Program">
+            ${appMeta.programs.map(pr => `<option value="${pr.program_id}">${pr.program_name}</option>`).join("")}
+          </select>
+        </div>
+        <div class="form-group">
+          <label>조회 시작일</label>
+          <input type="date" id="q6DateFrom" value="2026-03-01">
+        </div>
+        <div class="form-group">
+          <label>조회 종료일</label>
+          <input type="date" id="q6DateTo" value="2026-12-31">
+        </div>
+        <button class="btn btn-primary" id="btnQueryQ06">조회 실행</button>
+      </div>
+      <div id="q06Summary" style="margin-bottom:16px;"></div>
+      <div id="q06Details"></div>
+    </div>
+  `;
+
+      // 나의 신청 내역 (학생)
+      async function loadMyMileage() {
+        if (!p.create_mileage) return;
+        try {
+          const rows = await get(`/api/my-mileage?user_id=${currentUser.user_id}`);
+          $("#myMileageWrap").innerHTML = tbl(
+            ["신청ID", "프로그램명", "부여 포인트", "신청일시", "증빙 파일", "처리 상태"],
+            rows,
+            r => [
+              r.application_id, r.program_name, `+${r.mileage_points}점`, fmtDate(r.applied_at), `<code>${r.evidence_file_name || "-"}</code>`,
+              `<span class="tag tag-${r.application_status}">${STATUS_MAP[r.application_status] || r.application_status}</span>`
+            ]
+          );
+        } catch (e) { $("#myMileageWrap").innerHTML = `<p style="color:var(--danger);">${e.message}</p>`; }
+      }
+
+      // 관리자 대기 목록 (Q07)
+      async function loadPendingMileage() {
+        if (!p.approve_mileage) return;
+        const wrap = $("#pendingMileageWrap");
+        try {
+          const list = await get("/api/q07");
+          if (!list.length) {
+            wrap.innerHTML = '<div class="empty-msg">현재 승인 대기 중인 마일리지 신청이 없습니다.</div>';
+            return;
+          }
+          wrap.innerHTML = tbl(
+            ["신청ID", "학번", "성명", "프로그램명", "부여 포인트", "신청일시", "증빙 파일", "승인/반려 처리"],
+            list,
+            r => [
+              r.application_id, r.student_no, r.user_name, r.program_name, `+${r.mileage_points}점`, fmtDate(r.applied_at),
+              `<code>${r.evidence_file_name || "없음"}</code>`,
+              `<button class="btn btn-sm btn-success" data-action="approve" data-id="${r.application_id}">승인</button>
+           <button class="btn btn-sm btn-danger" data-action="reject" data-id="${r.application_id}">반려</button>`
+            ]
+          );
+
+          wrap.onclick = async (e) => {
+            const btn = e.target.closest("button[data-action]");
+            if (!btn) return;
+            const id = Number(btn.dataset.id);
+            const decision = btn.dataset.action === "approve" ? "APPROVED" : "REJECTED";
+            const comment = prompt("처리 의견을 입력하세요:", decision === "APPROVED" ? "활동 참여 확인 승인" : "증빙 불충분 반려");
+            if (comment === null) return;
+            try {
+              await post(`/api/process-mileage?user_id=${currentUser.user_id}`, {
+                application_id: id,
+                decision: decision,
+                comment: comment
+              });
+              alert(`신청 #${id} 건이 처리되었습니다.`);
+              loadPendingMileage();
+              loadQ05();
+              loadQ06();
+            } catch (err) { alert(err.message); }
+          };
+        } catch (e) { wrap.innerHTML = `<p style="color:var(--danger);">${e.message}</p>`; }
+      }
+
+      // Q05 누적 마일리지
+      async function loadQ05() {
+        try {
+          const rows = await get("/api/q05");
+          $("#q05Result").innerHTML = tbl(
+            ["학번", "성명", "누적 승인 마일리지 (Points)"],
+            rows,
+            r => [r.student_no, r.user_name, `<b style="color:var(--primary); font-size:16px;">${r.total_mileage} 점</b>`]
+          );
+        } catch (e) { $("#q05Result").innerHTML = `<p style="color:var(--danger);">${e.message}</p>`; }
+      }
+
+      // Q06 프로그램 실적
+      async function loadQ06() {
+        const pid = $("#q6Program").value;
+        const df = $("#q6DateFrom").value;
+        const dt = $("#q6DateTo").value;
+        try {
+          const data = await get(`/api/q06?program_id=${pid}&date_from=${df}&date_to=${dt}`);
+          $("#q06Summary").innerHTML = tbl(
+            ["대상 프로그램", "기간 내 승인 건수", "승인 마일리지 총합"],
+            data.summary,
+            r => [r.program_name, `${r.approved_count} 건`, `<b style="color:var(--primary); font-size:16px;">${r.approved_mileage_total} 점</b>`]
+          );
+          $("#q06Details").innerHTML = tbl(
+            ["프로그램", "신청일시", "학번", "성명", "부여 포인트", "처리상태", "승인처리일시"],
+            data.rows,
+            r => [r.program_name, r.applied_at, r.student_no, r.user_name, `+${r.mileage_points}`, `<span class="tag tag-${r.application_status}">${STATUS_MAP[r.application_status]}</span>`, r.processed_at]
+          );
+        } catch (e) { $("#q06Details").innerHTML = `<p style="color:var(--danger);">${e.message}</p>`; }
+      }
+
+      if (p.create_mileage && $("#formMileageApp")) {
+        $("#formMileageApp").onsubmit = async (e) => {
+          e.preventDefault();
+          try {
+            await post(`/api/mileage?user_id=${currentUser.user_id}`, {
+              program_id: Number($("#selProgram").value),
+              evidence_file_name: $("#mileageFile").value.trim()
+            });
+            alert("마일리지 신청이 정상적으로 접수되었습니다.");
+            $("#mileageFile").value = "";
+            loadMyMileage();
+            if (p.approve_mileage) loadPendingMileage();
+          } catch (err) { alert(err.message); }
+        };
+      }
+
+      $("#btnQueryQ06").onclick = loadQ06;
+
+      loadMyMileage();
+      loadPendingMileage();
+      loadQ05();
+      loadQ06();
+    }
+
+    // ===== 7. [예산 및 지출 관리] (Q08·Q09) =====
+    async function viewBudget() {
+      const container = $("#mainContent");
+      const isProf = !!currentUser.professor_id;
+      const canApproveExp = currentUser.permissions.approve_expenditure;
+
+      container.innerHTML = `
+    ${isProf ? `
+    <div class="panel">
+      <div class="panel-header">
+        <h2>교수 예산 지출 신청</h2>
+        <span class="sub-desc">지출 주체(산학협력/전공/융합) 및 비목 선택. 학생인건비는 학생 지정 필수 (CHECK 제약 검증)</span>
+      </div>
+      <form id="formExpApp" style="max-width:640px; display:grid; gap:14px;">
+        <div class="form-group">
+          <label style="width:120px;">예산 비목</label>
+          <select id="expBudget" style="flex:1;">
+            ${appMeta.budgets.map(b => `<option value="${b.budget_id}">[${b.project_name}] ${b.category_name} (배정예산: ${won(b.amount)})</option>`).join("")}
+          </select>
+        </div>
+        <div class="form-group">
+          <label style="width:120px;">지출 주체</label>
+          <select id="expEntity" style="flex:1;">
+            <option>전공</option><option>산학협력</option><option>융합</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label style="width:120px;">지출 유형</label>
+          <select id="expType" style="flex:1;">
+            <option value="GENERAL">일반 경비 (GENERAL)</option>
+            <option value="STUDENT_LABOR">학생 연구 인건비 (STUDENT_LABOR)</option>
+          </select>
+        </div>
+        <div class="form-group" id="studentSelectRow" style="display:none;">
+          <label style="width:120px;">대상 학생</label>
+          <select id="expStudent" style="flex:1;">
+            <option value="">학생을 선택하세요</option>
+            ${appMeta.students.map(s => `<option value="${s.student_id}">${s.student_no} ${s.user_name}</option>`).join("")}
+          </select>
+        </div>
+        <div class="form-group">
+          <label style="width:120px;">지출 금액</label>
+          <input type="number" id="expAmount" min="1" placeholder="예: 500000" style="flex:1;" required>
+        </div>
+        <div class="form-group">
+          <label style="width:120px;">지출 내역/목적</label>
+          <input type="text" id="expDesc" placeholder="지출 목적을 구체적으로 입력하세요" style="flex:1;">
+        </div>
+        <div>
+          <button type="submit" class="btn btn-primary">지출 신청 등록</button>
+        </div>
+      </form>
+    </div>` : ""}
+
+    ${canApproveExp ? `
+    <div class="panel">
+      <div class="panel-header">
+        <h2>대기 지출 승인 및 예산 한도 검사 (process_expenditure)</h2>
+        <span class="sub-desc">최고관리자 권한: 승인 시 <strong>(기존 승인액 + 신청액 > 예산)</strong> 초과 여부를 실시간 검사하여 차단합니다</span>
+      </div>
+      <div id="pendingExpWrap"></div>
+    </div>` : ""}
+
+    <div class="panel">
+      <div class="panel-header">
+        <h2>사업·예산항목별 예산 및 집행 현황 (Q08)</h2>
+        <span class="sub-desc">LEFT JOIN으로 승인 지출이 없는 비목도 잔액=예산, 집행률 0%로 정확히 산출됩니다</span>
+      </div>
+      <div id="q08Result"></div>
+    </div>
+
+    <div class="panel">
+      <div class="panel-header">
+        <h2>교수별·지출 주체별 승인 지출 합계 (Q09)</h2>
+        <span class="sub-desc">승인(APPROVED) 지출에 대해 교수 및 사업주체별 총 집행액 집계</span>
+      </div>
+      <div id="q09Result"></div>
+    </div>
+
+    <div class="panel">
+      <div class="panel-header">
+        <h2>전체 지출 내역 목록</h2>
+        <span class="sub-desc">등록된 모든 지출 건의 상태(대기, 승인, 반려) 및 상세</span>
+      </div>
+      <div id="allExpResult"></div>
+    </div>
+  `;
+
+      // 학생인건비 선택 시 학생 드롭다운 표시
+      if ($("#expType")) {
+        $("#expType").onchange = (e) => {
+          $("#studentSelectRow").style.display = e.target.value === "STUDENT_LABOR" ? "flex" : "none";
+        };
+      }
+
+      // Q08 로드
+      async function loadQ08() {
+        try {
+          const rows = await get("/api/q08");
+          $("#q08Result").innerHTML = tbl(
+            ["사업명", "예산 비목", "배정 예산", "승인 집행액", "예산 잔액", "집행률 (%)"],
+            rows,
+            r => [
+              r.project_name, r.category_name, won(r.budget_amount), won(r.approved_spend),
+              `<b>${won(r.balance)}</b>`,
+              `<div style="display:flex; align-items:center; gap:10px;">
+            <span style="font-weight:600; min-width:55px;">${pct(r.execution_rate_pct)}</span>
+            <div style="flex:1; max-width:100px; height:8px; background:#e2e8f0; border-radius:4px; overflow:hidden;">
+              <div style="width:${Math.min(r.execution_rate_pct, 100)}%; height:100%; background:linear-gradient(90deg, #3b82f6, #1d4ed8);"></div>
+            </div>
+          </div>`
+            ]
+          );
+        } catch (e) { $("#q08Result").innerHTML = `<p style="color:var(--danger);">${e.message}</p>`; }
+      }
+
+      // Q09 로드
+      async function loadQ09() {
+        try {
+          const rows = await get("/api/q09");
+          $("#q09Result").innerHTML = tbl(
+            ["교수 성명", "지출 주체", "승인 지출 총액", "승인 건수"],
+            rows,
+            r => [r.professor_name, r.spending_entity, `<b style="color:var(--primary); font-size:15px;">${won(r.approved_spend)}</b>`, `${r.approved_count} 건`]
+          );
+        } catch (e) { $("#q09Result").innerHTML = `<p style="color:var(--danger);">${e.message}</p>`; }
+      }
+
+      // 전체 지출 및 대기 목록 로드
+      async function loadExpenditures() {
+        try {
+          const list = await get("/api/expenditures");
+          $("#allExpResult").innerHTML = tbl(
+            ["지출ID", "신청 교수", "사업명", "비목", "지출주체", "신청 금액", "지출유형", "대상학생", "내용", "상태"],
+            list,
+            r => [
+              r.expenditure_id, r.professor_name, r.project_name, r.category_name, r.spending_entity,
+              `<b>${won(r.amount)}</b>`, r.expense_type, r.student_no || "-", r.description,
+              `<span class="tag tag-${r.status}">${STATUS_MAP[r.status] || r.status}</span>`
+            ]
+          );
+
+          // 관리자 대기 승인 목록
+          if (canApproveExp) {
+            const pend = list.filter(x => x.status === "PENDING");
+            const wrap = $("#pendingExpWrap");
+            if (!pend.length) {
+              wrap.innerHTML = '<div class="empty-msg">현재 승인 대기 중인 지출 신청이 없습니다.</div>';
+              return;
+            }
+            wrap.innerHTML = tbl(
+              ["지출ID", "신청 교수", "예산 비목", "지출주체", "신청 금액", "내용", "승인/반려 (한도 검사)"],
+              pend,
+              r => [
+                r.expenditure_id, r.professor_name, `${r.project_name} / ${r.category_name}`, r.spending_entity,
+                `<b style="color:var(--primary);">${won(r.amount)}</b>`, r.description,
+                `<button class="btn btn-sm btn-success" data-action="approve" data-id="${r.expenditure_id}">승인 (검사)</button>
+             <button class="btn btn-sm btn-danger" data-action="reject" data-id="${r.expenditure_id}">반려</button>`
+              ]
+            );
+
+            wrap.onclick = async (e) => {
+              const btn = e.target.closest("button[data-action]");
+              if (!btn) return;
+              const id = Number(btn.dataset.id);
+              const decision = btn.dataset.action === "approve" ? "APPROVED" : "REJECTED";
+              const comment = prompt("처리 의견을 입력하세요:", decision === "APPROVED" ? "예산 집행 승인" : "예산 계획 외 반려");
+              if (comment === null) return;
+              try {
+                await post(`/api/process-expenditure?user_id=${currentUser.user_id}`, {
+                  expenditure_id: id,
+                  decision: decision,
+                  comment: comment
+                });
+                alert(`지출 #${id} 건이 처리되었습니다.`);
+                loadExpenditures();
+                loadQ08();
+                loadQ09();
+              } catch (err) { alert(err.message); }
+            };
+          }
+        } catch (e) { $("#allExpResult").innerHTML = `<p style="color:var(--danger);">${e.message}</p>`; }
+      }
+
+      // 지출 신청 제출 (교수)
+      if (isProf && $("#formExpApp")) {
+        $("#formExpApp").onsubmit = async (e) => {
+          e.preventDefault();
+          try {
+            await post(`/api/expenditure?user_id=${currentUser.user_id}`, {
+              budget_id: Number($("#expBudget").value),
+              spending_entity: $("#expEntity").value,
+              expense_type: $("#expType").value,
+              student_id: $("#expStudent").value ? Number($("#expStudent").value) : null,
+              amount: Number($("#expAmount").value),
+              description: $("#expDesc").value.trim()
+            });
+            alert("지출 신청이 등록되었습니다.");
+            $("#expAmount").value = "";
+            $("#expDesc").value = "";
+            loadExpenditures();
+          } catch (err) { alert(err.message); }
+        };
+      }
+
+      loadQ08();
+      loadQ09();
+      loadExpenditures();
+    }
+
+    // ===== 8. [만족도 조사 분석] (Q10·Q11) =====
+    async function viewSurvey() {
+      const container = $("#mainContent");
+      const isStudent = !!currentUser.student_id;
+
+      container.innerHTML = `
+    ${isStudent ? `
+    <div class="panel">
+      <div class="panel-header">
+        <h2>만족도 조사 응답 참여</h2>
+        <span class="sub-desc">점수형(1~5점) 및 서술형 문항에 성실히 답변해 주세요 (설문당 1회 제출)</span>
+      </div>
+      <div style="max-width:640px;">
+        <div class="form-group" style="margin-bottom:16px;">
+          <label style="width:110px;">설문 선택</label>
+          <select id="surveySel" style="flex:1;">
+            ${appMeta.surveys.map(sv => `<option value="${sv.survey_id}">[${sv.project_name}] ${sv.title}</option>`).join("")}
+          </select>
+        </div>
+        <div id="surveyQuestionsBox" style="display:grid; gap:14px; margin-bottom:16px;"></div>
+        <button class="btn btn-primary" id="btnSubmitSurvey">설문 응답 제출</button>
+      </div>
+    </div>` : ""}
+
+    <div class="panel">
+      <div class="panel-header">
+        <h2>사업·문항별 만족도 점수 평균 및 응답 수 (Q10)</h2>
+        <span class="sub-desc">모든 문항에 성실히 답한 <strong>완료 응답(completed response)</strong>만을 집계 대상으로 삼습니다</span>
+      </div>
+      <div id="q10Result"></div>
+    </div>
+
+    <div class="panel">
+      <div class="panel-header">
+        <h2>학과·학년별 만족도 평균 점수 (Q11 - SCORE)</h2>
+        <span class="sub-desc">학과 및 학년별 세부 점수 통계</span>
+      </div>
+      <div id="q11ScoresResult"></div>
+    </div>
+
+    <div class="panel">
+      <div class="panel-header">
+        <h2>학과·학년별 익명 서술형 개선 의견 (Q11 - TEXT)</h2>
+        <span class="sub-desc">개인 식별 정보(학번/성명)를 배제한 순수 익명 피드백 목록</span>
+      </div>
+      <div id="q11TextsResult"></div>
+    </div>
+  `;
+
+      // 학생용 질문 동적 로드
+      if (isStudent && $("#surveySel")) {
+        function drawQuestions() {
+          const sid = Number($("#surveySel").value);
+          const sv = appMeta.surveys.find(s => s.survey_id === sid);
+          if (!sv) return;
+          $("#surveyQuestionsBox").innerHTML = sv.questions.map(q => {
+            if (q.question_type === "SCORE") {
+              return `
+            <div style="background:var(--bg-main); padding:14px 18px; border:1px solid var(--border-light); border-radius:8px;">
+              <div style="font-weight:700; margin-bottom:8px; font-size:14px;">${q.display_order}. ${q.question_text} <span style="color:var(--primary); font-size:12px;">[점수형 1~5점]</span></div>
+              <select data-qid="${q.question_id}" data-type="SCORE" style="width:180px;">
+                <option value="5">5점 - 매우 만족</option>
+                <option value="4">4점 - 만족</option>
+                <option value="3">3점 - 보통</option>
+                <option value="2">2점 - 불만족</option>
+                <option value="1">1점 - 매우 불만족</option>
+              </select>
+            </div>
+          `;
+            } else {
+              return `
+            <div style="background:var(--bg-main); padding:14px 18px; border:1px solid var(--border-light); border-radius:8px;">
+              <div style="font-weight:700; margin-bottom:8px; font-size:14px;">${q.display_order}. ${q.question_text} <span style="color:var(--text-muted); font-size:12px;">[서술형]</span></div>
+              <textarea data-qid="${q.question_id}" data-type="TEXT" placeholder="자유로운 개선 의견을 작성해 주세요" style="width:100%; height:75px;" required></textarea>
+            </div>
+          `;
+            }
+          }).join("");
+        }
+        $("#surveySel").onchange = drawQuestions;
+        drawQuestions();
+
+        $("#btnSubmitSurvey").onclick = async () => {
+          const qElements = $$("#surveyQuestionsBox [data-qid]");
+          const answers = qElements.map(el => ({
+            question_id: Number(el.dataset.qid),
+            score: el.dataset.type === "SCORE" ? Number(el.value) : null,
+            answer_text: el.dataset.type === "TEXT" ? el.value.trim() : null
+          }));
+
+          try {
+            await post(`/api/survey?user_id=${currentUser.user_id}`, {
+              survey_id: Number($("#surveySel").value),
+              answers: answers
+            });
+            alert("만족도 조사가 성공적으로 제출되었습니다. 참여해 주셔서 감사합니다.");
+            loadQ10();
+            loadQ11();
+          } catch (err) { alert(err.message); }
+        };
+      }
+
+      // Q10 로드
+      async function loadQ10() {
+        try {
+          const rows = await get("/api/q10");
+          $("#q10Result").innerHTML = tbl(
+            ["사업명", "설문명", "문항 내용", "유형", "만족도 평균 (5점 만점)", "점수 응답 수", "서술 응답 수"],
+            rows,
+            r => [
+              r.project_name, r.title, r.question_text, r.question_type,
+              r.average_score !== null ? `<b style="color:var(--primary); font-size:15px;">${r.average_score}점</b>` : `<span style="color:var(--text-muted);">(서술형)</span>`,
+              `${r.numeric_response_count} 명`, `${r.text_response_count} 건`
+            ]
+          );
+        } catch (e) { $("#q10Result").innerHTML = `<p style="color:var(--danger);">${e.message}</p>`; }
+      }
+
+      // Q11 로드
+      async function loadQ11() {
+        try {
+          const data = await get("/api/q11");
+          $("#q11ScoresResult").innerHTML = tbl(
+            ["학과", "학년", "설문명", "문항 내용", "평균 점수", "응답자 수"],
+            data.scores,
+            r => [r.department, r.grade + "학년", r.title, r.question_text, `<b>${r.average_score}점</b>`, `${r.response_count} 명`]
+          );
+          $("#q11TextsResult").innerHTML = tbl(
+            ["학과", "학년", "설문명", "문항 내용", "작성된 주관식 개선 의견"],
+            data.texts,
+            r => [r.department, r.grade + "학년", r.title, r.question_text, `<span style="color:#1e3a8a; font-weight:500;">${r.answer_text}</span>`]
+          );
+        } catch (e) { $("#q11ScoresResult").innerHTML = `<p style="color:var(--danger);">${e.message}</p>`; }
+      }
+
+      loadQ10();
+      loadQ11();
+    }
+
+    // ===== 9. [감사 로그] (Q12) =====
+    async function viewLog() {
+      const container = $("#mainContent");
+      container.innerHTML = `
+    <div class="panel">
+      <div class="panel-header">
+        <h2>시스템 변경 및 승인 감사 로그 (Q12)</h2>
+        <span class="sub-desc">change_log 테이블: 학적 변경, 마일리지 승인, 지출 승인 등의 모든 수행 이력이 안전하게 추적됩니다</span>
+      </div>
+      <div class="filter-bar">
+        <div class="form-group">
+          <label>대상 테이블 (target_type)</label>
+          <select id="logTargetType">
+            <option value="">전체 테이블</option>
+            <option value="student_change_request">학생정보 변경 (student_change_request)</option>
+            <option value="mileage_application">마일리지 신청 (mileage_application)</option>
+            <option value="expenditure">예산 지출 (expenditure)</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>대상 레코드 ID (target_id)</label>
+          <input type="text" id="logTargetId" placeholder="비우면 전체 검색">
+        </div>
+        <button class="btn btn-primary" id="btnQueryQ12">검색 실행</button>
+      </div>
+      <div id="q12Result"></div>
+    </div>
+  `;
+
+      async function loadLogs() {
+        const tt = $("#logTargetType").value;
+        const tid = $("#logTargetId").value.trim();
+        try {
+          const rows = await get(`/api/q12?target_type=${encodeURIComponent(tt)}&target_id=${encodeURIComponent(tid)}`);
+          $("#q12Result").innerHTML = tbl(
+            ["대상 테이블 (target_type)", "대상 ID", "수행 액션", "처리자 (processor)", "기록 일시", "변경 상세 내역 (change_detail)"],
+            rows,
+            r => [
+              `<code>${r.target_type}</code>`, r.target_id,
+              `<span class="tag tag-${r.action_type}">${r.action_type}</span>`,
+              `<b>${r.processor || "시스템"}</b>`, r.created_at, `<code>${r.change_detail}</code>`
+            ]
+          );
+        } catch (e) { $("#q12Result").innerHTML = `<p style="color:var(--danger);">${e.message}</p>`; }
+      }
+
+      $("#btnQueryQ12").onclick = loadLogs;
+      loadLogs();
+    }
+
+    // ===== 10. [사업 성과 분석 대시보드] =====
+    async function viewDashboard() {
+      const container = $("#mainContent");
+      container.innerHTML = `
+    <div class="panel">
+      <div class="panel-header">
+        <h2>사업 성과 종합 분석</h2>
+        <div class="form-group">
+          <label>분석 대상 사업</label>
+          <select id="dashProjectSel" style="font-weight:600;">
+            ${appMeta.projects.map(p => `<option value="${p.project_id}">${p.project_name}</option>`).join("")}
+          </select>
+        </div>
+      </div>
+      <div id="dashKpiRow" class="kpi-row"></div>
+    </div>
+
+    <div class="grid-2">
+      <div class="panel">
+        <div class="panel-header">
+          <h2>비목별 예산 vs 승인 집행액 현황</h2>
+          <span class="sub-desc">단위: 원</span>
+        </div>
+        <div id="dashBudgetChart" style="min-height:240px;"></div>
+      </div>
+      <div class="panel">
+        <div class="panel-header">
+          <h2>문항별 만족도 점수 추이 (5점 만점)</h2>
+          <span class="sub-desc">완료 응답 기준</span>
+        </div>
+        <div id="dashSurveyChart" style="min-height:240px;"></div>
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="panel-header">
+        <h2>사업 성과 4분면 매트릭스 진단</h2>
+        <span class="sub-desc">집행률(80% 이상 고집행 / 50% 미만 점검) 및 만족도(4.0 이상 우수 / 3.0 미만 개선) 복합 분석</span>
+      </div>
+      <div id="dashMatrixWrap"></div>
+    </div>
+  `;
+
+      async function updateDashboard() {
+        const pid = Number($("#dashProjectSel").value);
+        const pName = appMeta.projects.find(p => p.project_id === pid)?.project_name;
+
+        const q08 = await get("/api/q08");
+        const q10 = await get("/api/q10");
+
+        const pBudgets = q08.filter(b => b.project_name === pName);
+        const totalBud = pBudgets.reduce((s, b) => s + b.budget_amount, 0);
+        const totalApp = pBudgets.reduce((s, b) => s + b.approved_spend, 0);
+        const execRate = totalBud === 0 ? 0 : (totalApp / totalBud * 100);
+
+        const pSurveys = q10.filter(s => s.project_name === pName && s.average_score !== null);
+        const avgScore = pSurveys.length ? (pSurveys.reduce((s, x) => s + x.average_score, 0) / pSurveys.length) : null;
+
+        // KPI 카드
+        $("#dashKpiRow").innerHTML = `
+      <div class="kpi-box">
+        <small>총 배정 예산</small>
+        <div class="val">${won(totalBud)}</div>
+      </div>
+      <div class="kpi-box">
+        <small>승인 집행 총액</small>
+        <div class="val pri">${won(totalApp)}</div>
+      </div>
+      <div class="kpi-box">
+        <small>예산 집행률</small>
+        <div class="val" style="color:${execRate < 50 ? "var(--warning)" : "var(--primary)"};">${pct(execRate)}</div>
+      </div>
+      <div class="kpi-box">
+        <small>학생 만족도 종합 평균</small>
+        <div class="val" style="color:${avgScore && avgScore >= 4.0 ? "var(--success)" : "var(--primary)"};">${avgScore ? avgScore.toFixed(2) + "점 / 5.0" : "평가 전"}</div>
+      </div>
+    `;
+
+        // 1) 예산 가로 막대 차트 (SVG - 미세한 그라디언트 기교)
+        const maxBud = Math.max(...pBudgets.map(b => b.budget_amount), 1);
+        const w = 560, rowH = 38;
+        const svgH = pBudgets.length * rowH + 20;
+        let bSvg = `
+      <svg viewBox="0 0 ${w} ${svgH}" width="100%" style="overflow:visible;">
+        <defs>
+          <linearGradient id="barBlueGrad" x1="0" y1="0" x2="1" y2="0">
+            <stop offset="0%" stop-color="#3b82f6"/>
+            <stop offset="100%" stop-color="#1d4ed8"/>
+          </linearGradient>
+        </defs>
+    `;
+        pBudgets.forEach((b, i) => {
+          const y = i * rowH + 10;
+          const bWidth = Math.max(0, (b.budget_amount / maxBud) * (w - 200));
+          const aWidth = Math.max(0, (b.approved_spend / maxBud) * (w - 200));
+          bSvg += `
+        <text x="95" y="${y + 17}" text-anchor="end" font-size="13" font-weight="500">${b.category_name}</text>
+        <rect x="105" y="${y + 2}" width="${bWidth}" height="11" rx="3" fill="#e2e8f0"/>
+        <rect x="105" y="${y + 15}" width="${aWidth}" height="11" rx="3" fill="url(#barBlueGrad)"/>
+        <text class="muted-text" x="${112 + Math.max(bWidth, aWidth)}" y="${y + 16}">${won(b.approved_spend)} (${pct(b.execution_rate_pct)})</text>
+      `;
+        });
+        bSvg += `</svg>
+      <div style="display:flex; gap:18px; font-size:13px; margin-top:10px; justify-content:center; color:var(--text-muted);">
+        <span style="display:flex; align-items:center; gap:6px;"><span style="display:inline-block; width:12px; height:12px; background:#e2e8f0; border-radius:3px;"></span> 배정예산</span>
+        <span style="display:flex; align-items:center; gap:6px;"><span style="display:inline-block; width:12px; height:12px; background:#2563eb; border-radius:3px;"></span> 승인지출</span>
+      </div>
+    `;
+        $("#dashBudgetChart").innerHTML = bSvg;
+
+        // 2) 만족도 점수 세로 막대 차트 (SVG)
+        if (!pSurveys.length) {
+          $("#dashSurveyChart").innerHTML = '<div class="empty-msg">집계된 점수형 만족도 문항이 없습니다.</div>';
+        } else {
+          const sw = 500, sh = 200, barW = 46;
+          let sSvg = `<svg viewBox="0 0 ${sw} ${sh}" width="100%" style="overflow:visible;">`;
+          sSvg += `<line x1="30" y1="150" x2="${sw - 10}" y2="150" stroke="var(--border-light)"/>`;
+          // 기준선 4.0점
+          const y4 = 150 - (4.0 / 5.0) * 120;
+          sSvg += `<line x1="30" y1="${y4}" x2="${sw - 10}" y2="${y4}" stroke="#94a3b8" stroke-dasharray="4 3"/>
+               <text class="muted-text" x="${sw - 12}" y="${y4 - 6}" text-anchor="end">우수 기준선 (4.0점)</text>`;
+
+          pSurveys.forEach((s, idx) => {
+            const x = 55 + idx * 140;
+            const bHeight = (s.average_score / 5.0) * 120;
+            const y = 150 - bHeight;
+            sSvg += `
+          <rect x="${x}" y="${y}" width="${barW}" height="${bHeight}" rx="4" fill="#2563eb"/>
+          <text x="${x + barW / 2}" y="${y - 8}" text-anchor="middle" font-weight="700" font-size="14" fill="var(--primary)">${s.average_score}점</text>
+          <text class="muted-text" x="${x + barW / 2}" y="168" text-anchor="middle">문항 ${idx + 1}</text>
+        `;
+          });
+          sSvg += `</svg>`;
+          $("#dashSurveyChart").innerHTML = sSvg;
+        }
+
+        // 3) 성과 매트릭스 진단 (세련된 카드 기교)
+        let tagHtml = "";
+        if (execRate >= 80 && avgScore && avgScore >= 4.0) {
+          tagHtml = '<span class="tag tag-success">우수: 집행률 양호 및 만족도 최상 (성과 확산 대상)</span>';
+        } else if (execRate < 50 && avgScore && avgScore >= 4.0) {
+          tagHtml = '<span class="tag tag-warning">점검: 만족도는 높으나 예산 집행 부진 (예산 조기 집행 독려 필요)</span>';
+        } else if (execRate >= 80 && avgScore && avgScore < 3.0) {
+          tagHtml = '<span class="tag tag-danger">주의: 집행률은 높으나 학생 만족도 저조 (교육과정 및 강사진 개선 필요)</span>';
+        } else {
+          tagHtml = '<span class="tag tag-INFO">정상: 사업 운영 진행 중 (특이 결함 없음)</span>';
+        }
+
+        $("#dashMatrixWrap").innerHTML = `
+      <div style="background:var(--bg-main); border:1px solid var(--border-light); border-left:4px solid var(--primary); border-radius:8px; padding:20px;">
+        <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:12px;">
+          <h3 style="font-size:15px; font-weight:700;">${pName} 종합 평가 결과</h3>
+          ${tagHtml}
+        </div>
+        <p style="font-size:14px; color:var(--text-muted); line-height:1.7;">
+          현재 집행률은 <strong>${pct(execRate)}</strong>이며, 학생 만족도 평균은 <strong>${avgScore ? avgScore.toFixed(2) + "점" : "미집계"}</strong>입니다.<br>
+          SW중심대학사업 종합 성과 지표 달성을 위해 미집행 비목 잔액 현황을 정기 모니터링하고, 주관식 학생 개선의견(Q11)을 다음 학기 신규 프로그램 기획에 반영할 것을 권장합니다.
+        </p>
+      </div>
+    `;
+      }
+
+      $("#dashProjectSel").onchange = updateDashboard;
+      updateDashboard();
+    }
+
+    // ===== 11. [시스템 무결성 검증 (04_tests)] =====
+    async function viewTests() {
+      const container = $("#mainContent");
+      container.innerHTML = `
+    <div class="panel">
+      <div class="panel-header">
+        <h2>04_tests.sql 무결성 및 제약조건 자동 검증 스위트</h2>
+        <div>
+          <button class="btn btn-primary" id="btnRunTests">검증 스위트 재실행</button>
+        </div>
+      </div>
+      <p class="notice-box">
+        <strong>04_tests.sql</strong>에 명시된 61개 검증 항목(사전조건 P, 집계예측 S, 스키마 제약 A, 학적변경 B/C, 마일리지 D, 지출한도 E, 만족도 F, 접근통제 G, 감사로그 H)을 독립 샌드박스에서 즉시 수행하고 검증 결과를 대조합니다.
+      </p>
+      <div id="testSummaryWrap" style="margin-bottom:20px;"></div>
+      <div id="testListWrap">
+        <div class="empty-msg">[검증 스위트 재실행] 버튼을 클릭하면 즉시 전체 테스트가 수행됩니다.</div>
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="panel-header">
+        <h2>실시간 DB 제약조건 방어 시연 (Sandboxed Error Testing)</h2>
+        <span class="sub-desc">각 버튼을 클릭하여 서버가 DBMS 규칙 및 비즈니스 제약을 정상적으로 차단하는지 실시간 체험합니다</span>
+      </div>
+      <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(290px, 1fr)); gap:14px;" id="demoActions">
+        <div style="border:1px solid var(--border-light); padding:16px; border-radius:8px; background:var(--bg-main);">
+          <b style="display:block; margin-bottom:6px; font-size:14px; color:var(--text-title);">1. 예산 한도 초과 승인 차단</b>
+          <p style="font-size:13px; color:var(--text-muted); margin-bottom:10px;">운영비 예산 150만원에 160만원 승인 시도 (process_expenditure)</p>
+          <button class="btn btn-sm btn-primary" data-demo="over_budget">초과 승인 시도</button>
+        </div>
+        <div style="border:1px solid var(--border-light); padding:16px; border-radius:8px; background:var(--bg-main);">
+          <b style="display:block; margin-bottom:6px; font-size:14px; color:var(--text-title);">2. 마일리지 중복 신청 차단</b>
+          <p style="font-size:13px; color:var(--text-muted); margin-bottom:10px;">이미 신청한 동일 프로그램 재신청 시도 (UNIQUE 제약)</p>
+          <button class="btn btn-sm btn-primary" data-demo="dup_mileage">중복 신청 시도</button>
+        </div>
+        <div style="border:1px solid var(--border-light); padding:16px; border-radius:8px; background:var(--bg-main);">
+          <b style="display:block; margin-bottom:6px; font-size:14px; color:var(--text-title);">3. 학생인건비 학생 미지정 차단</b>
+          <p style="font-size:13px; color:var(--text-muted); margin-bottom:10px;">STUDENT_LABOR 유형인데 student_id가 NULL인 경우 (CHECK 제약)</p>
+          <button class="btn btn-sm btn-primary" data-demo="labor_chk">인건비 미지정 시도</button>
+        </div>
+        <div style="border:1px solid var(--border-light); padding:16px; border-radius:8px; background:var(--bg-main);">
+          <b style="display:block; margin-bottom:6px; font-size:14px; color:var(--text-title);">4. 만족도 점수 1~5점 초과 차단</b>
+          <p style="font-size:13px; color:var(--text-muted); margin-bottom:10px;">SCORE 문항에 6점 입력 제출 시도 (chk_survey_answer_type)</p>
+          <button class="btn btn-sm btn-primary" data-demo="score_range">6점 제출 시도</button>
+        </div>
+      </div>
+      <div id="demoOutput" style="margin-top:16px; display:none; background:#ffffff; border:1px solid var(--border-subtle); padding:16px; border-radius:8px; font-size:14px; box-shadow:var(--shadow-sm);"></div>
+    </div>
+  `;
+
+      // 테스트 실행
+      async function runSuite() {
+        $("#testListWrap").innerHTML = '<div class="empty-msg">테스트 스위트를 실행 중입니다...</div>';
+        try {
+          const data = await get("/api/tests");
+          const sum = data.summary;
+          $("#testSummaryWrap").innerHTML = `
+        <div class="kpi-row">
+          <div class="kpi-box">
+            <small>전체 검증 항목</small>
+            <div class="val">${sum.total}건</div>
+          </div>
+          <div class="kpi-box">
+            <small>검증 성공 (PASS)</small>
+            <div class="val" style="color:var(--success);">${sum.pass}건</div>
+          </div>
+          <div class="kpi-box">
+            <small>검증 실패 (FAIL)</small>
+            <div class="val" style="color:${sum.fail > 0 ? "var(--danger)" : "var(--text-muted)"};">${sum.fail}건</div>
+          </div>
+          <div class="kpi-box">
+            <small>검증 성공률</small>
+            <div class="val pri">${((sum.pass / sum.total) * 100).toFixed(1)}%</div>
+          </div>
+        </div>
+      `;
+
+          $("#testListWrap").innerHTML = tbl(
+            ["순번", "테스트 ID", "카테고리", "검증 내용 / 목적", "기대 결과 (Expected)", "실제 결과 (Actual)", "판정"],
+            data.results,
+            r => [
+              r.seq, `<b>${r.test_id}</b>`, r.category, r.description,
+              `<code>${r.expected}</code>`, `<code>${r.actual}</code>`,
+              `<span class="tag tag-${r.result}">${r.result}</span>`
+            ]
+          );
+        } catch (e) { $("#testListWrap").innerHTML = `<p style="color:var(--danger);">${e.message}</p>`; }
+      }
+
+      $("#btnRunTests").onclick = runSuite;
+      runSuite();
+
+      // 인터랙티브 데모
+      $("#demoActions").onclick = async (e) => {
+        const btn = e.target.closest("button[data-demo]");
+        if (!btn) return;
+        const type = btn.dataset.demo;
+        const out = $("#demoOutput");
+        out.style.display = "block";
+        out.innerHTML = "제약조건 테스트 요청을 처리 중입니다...";
+
+        try {
+          if (type === "over_budget") {
+            await post("/api/expenditure?user_id=13", { budget_id: 6, spending_entity: "전공", expense_type: "GENERAL", amount: 1400000, description: "데모 한도초과" });
+            const list = await get("/api/expenditures");
+            const last = list[list.length - 1];
+            await post("/api/process-expenditure?user_id=12", { expenditure_id: last.expenditure_id, decision: "APPROVED", comment: "시도" });
+            out.innerHTML = `<span style="color:var(--danger);">오류 발생 실패 (정상 차단되지 않음)</span>`;
+          } else if (type === "dup_mileage") {
+            await post("/api/mileage?user_id=1", { program_id: 1, evidence_file_name: "test.pdf" });
+            out.innerHTML = `<span style="color:var(--danger);">오류 발생 실패</span>`;
+          } else if (type === "labor_chk") {
+            await post("/api/expenditure?user_id=13", { budget_id: 5, spending_entity: "전공", expense_type: "STUDENT_LABOR", student_id: null, amount: 500000 });
+            out.innerHTML = `<span style="color:var(--danger);">오류 발생 실패</span>`;
+          } else if (type === "score_range") {
+            await post("/api/survey?user_id=6", { survey_id: 1, answers: [{ question_id: 1, score: 6 }, { question_id: 2, score: 5 }, { question_id: 3, answer_text: "의견" }] });
+            out.innerHTML = `<span style="color:var(--danger);">오류 발생 실패</span>`;
+          }
+        } catch (err) {
+          out.innerHTML = `
+        <div style="color:var(--success); font-weight:700; margin-bottom:6px; display:flex; align-items:center; gap:6px;">
+          <span>✓</span> 시스템이 무결성 규칙에 따라 안전하게 차단을 완료하였습니다!
+        </div>
+        <div style="background:#fef2f2; border:1px solid #fecaca; color:#b91c1c; padding:8px 12px; border-radius:6px; font-family:monospace; font-size:13.5px;">
+          서버 반환 차단 메시지: ${err.message}
+        </div>
+      `;
+        }
+      };
+    }
+
+    // 초기 로딩
+    renderLogin();
+  </script>
+</body>
+
+</html>

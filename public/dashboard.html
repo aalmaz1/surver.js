@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>사업 성과 분석 대시보드</title>
+<style>
+:root{--bg:#f6f7f9;--card:#fff;--tx:#030303;--mut:#6b7280;--bd:#e2e5ea;--pri:#2f5fd0;--pri2:#b9c9f2;--ok:#1f8a4c;--warn:#c27a00;--bad:#c93a3a;--chip:#eef1f6;
+box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);color-scheme:light}
+@media(prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#14171d;--card:#1d222b;--tx:#e8ebf0;--mut:#99a1af;--bd:#2d3440;--pri:#7ea2ff;--pri2:#33426b;--ok:#4cc784;--warn:#e8a93c;--bad:#ef7a7a;--chip:#272d38;color-scheme:dark}}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--tx);font:15px/1.55 -apple-system,"Apple SD Gothic Neo","Malgun Gothic","Noto Sans KR",sans-serif}
+header{background:var(--card);border-bottom:1px solid var(--bd);padding:14px 20px;display:flex;flex-wrap:wrap;gap:12px;align-items:center;justify-content:space-between}
+h1{font-size:18px;margin:0}
+nav{display:flex;gap:6px;flex-wrap:wrap}
+nav button,.btn{border:1px solid var(--bd);background:var(--card);color:var(--tx);padding:7px 14px;border-radius:8px;cursor:pointer;font:inherit;font-size:14px}
+nav button.on{background:var(--pri);border-color:var(--pri);color:#fff}
+main{max-width:1000px;margin:0 auto;padding:18px 16px 40px}
+.bar{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-bottom:14px}
+select{padding:7px 10px;border-radius:8px;border:1px solid var(--bd);background:var(--card);color:var(--tx);font:inherit}
+.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin-bottom:14px}
+.card,.kpi{background:var(--card);border:1px solid var(--bd);border-radius:12px;padding:14px 16px}
+.kpi small{color:var(--mut);display:block}.kpi b{font-size:22px}
+h2{font-size:16px;margin:0 0 10px}
+.note{color:var(--mut);font-size:13px;margin:8px 0 0}
+.wrap{overflow-x:auto}
+table{border-collapse:collapse;width:100%;font-size:14px}
+th,td{padding:8px 10px;border-bottom:1px solid var(--bd);text-align:right;white-space:nowrap}
+th:first-child,td:first-child,td.l,th.l{text-align:left}
+th{color:var(--mut);font-weight:600}
+.chip{display:inline-block;padding:2px 9px;border-radius:99px;font-size:12px;background:var(--chip)}
+.APPROVED{color:var(--ok)}.PENDING{color:var(--warn)}.REJECTED{color:var(--bad)}
+.tag-ok{color:var(--ok)}.tag-warn{color:var(--warn)}.tag-bad{color:var(--bad)}
+.empty{color:var(--mut);text-align:center;padding:24px}
+.grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:12px;margin-bottom:14px}
+.card{margin-bottom:14px}.grid2 .card{margin:0}
+svg text{fill:var(--tx);font-size:12px}svg .m{fill:var(--mut)}
+details summary{cursor:pointer;color:var(--pri);font-size:14px}
+ul.op{margin:6px 0 0;padding-left:18px}
+</style>
+</head>
+<body>
+<header>
+  <h1>사업 성과 분석</h1>
+  <nav id="nav">
+    <button data-v="budget">사업별 예산 분석</button>
+    <button data-v="survey">학생 만족도 분석</button>
+    <button data-v="total">사업 성과 종합</button>
+  </nav>
+</header>
+<main>
+  <div class="bar">
+    <label for="sel">사업 선택</label><select id="sel"></select>
+  </div>
+  <div id="view"></div>
+</main>
+<script>
+/* ===== 데이터 (02_seed.sql 기준 샘플. 추후 API 응답으로 교체) ===== */
+const CATS={1:['인건비',8e6],2:['장비구입비',5e6],3:['여비교통비',1e6],4:['연구활동비',2e6],5:['학생인건비',1e7],6:['운영비',1.5e6],7:['기타',5e5]};
+const PROJECTS=[
+ {id:1,name:'2026년 SW중심대학 사업',budgets:Object.values(CATS).map(c=>({cat:c[0],amount:c[1]})),
+  exps:[
+   {id:1,cat:'장비구입비',prof:'김교수',ent:'산학협력',amount:1500000,status:'APPROVED',desc:'장비 구매'},
+   {id:2,cat:'장비구입비',prof:'김교수',ent:'산학협력',amount:500000,status:'PENDING',desc:'장비 구매 대기'},
+   {id:3,cat:'학생인건비',prof:'김교수',ent:'전공',amount:3000000,status:'APPROVED',desc:'학생 연구 인건비'},
+   {id:4,cat:'학생인건비',prof:'이교수',ent:'전공',amount:2000000,status:'APPROVED',desc:'학생 연구 인건비'},
+   {id:5,cat:'학생인건비',prof:'이교수',ent:'융합',amount:1000000,status:'PENDING',desc:'승인 대기 학생 인건비'},
+   {id:8,cat:'학생인건비',prof:'김교수',ent:'전공',amount:500000,status:'APPROVED',desc:'학생 연구 인건비'},
+   {id:9,cat:'장비구입비',prof:'이교수',ent:'산학협력',amount:300000,status:'REJECTED',desc:'반려된 장비 구매'},
+   {id:10,cat:'운영비',prof:'박교수',ent:'융합',amount:200000,status:'APPROVED',desc:'운영비'}],
+  survey:{title:'SW사업 만족도 조사',qs:[{t:'프로그램 전반에 만족하십니까?',type:'SCORE'},{t:'운영 안내에 만족하십니까?',type:'SCORE'},{t:'개선 의견을 작성해 주세요.',type:'TEXT'}],
+   resp:[1,2,3,4,5]}},
+ {id:2,name:'글로벌 인재양성 사업',budgets:[{cat:'인건비',amount:8e6}],
+  exps:[
+   {id:6,cat:'인건비',prof:'박교수',ent:'융합',amount:4000000,status:'APPROVED',desc:'인건비'},
+   {id:7,cat:'인건비',prof:'박교수',ent:'융합',amount:1000000,status:'PENDING',desc:'인건비 대기'}],
+  survey:{title:'글로벌 인재양성 만족도 조사',qs:[{t:'프로그램 전반에 만족하십니까?',type:'SCORE'},{t:'학습 내용에 만족하십니까?',type:'SCORE'},{t:'개선 의견을 작성해 주세요.',type:'TEXT'}],
+   resp:[1,2,3,4,5]}}
+];
+/* 시드 규칙: 점수 = 3 + (student_id % 3), 의견 = '개선 의견 예시 {id}', 응답자는 소프트웨어학과 1학년 */
+const STATUS={APPROVED:'승인',PENDING:'대기',REJECTED:'반려'};
+const TH={lowSat:3.0,lowExec:50,hiExec:80,hiSat:4.0};
+
+/* ===== 계산 ===== */
+const won=n=>Math.round(n).toLocaleString('ko-KR')+'원';
+const sum=a=>a.reduce((x,y)=>x+y,0);
+function budgetOf(p){
+  const rows=p.budgets.map(b=>{
+    const ap=sum(p.exps.filter(e=>e.cat===b.cat&&e.status==='APPROVED').map(e=>e.amount));
+    return {cat:b.cat,budget:b.amount,approved:ap,balance:b.amount-ap,rate:b.amount===0?0:ap/b.amount*100};
+  });
+  const budget=sum(rows.map(r=>r.budget)),approved=sum(rows.map(r=>r.approved));
+  return {rows,budget,approved,balance:budget-approved,rate:budget===0?0:approved/budget*100,
+    pending:sum(p.exps.filter(e=>e.status==='PENDING').map(e=>e.amount)),
+    rejected:sum(p.exps.filter(e=>e.status==='REJECTED').map(e=>e.amount))};
+}
+function surveyOf(p){ // 모든 문항에 답한 완료 응답만 집계 (시드 응답은 전부 완료)
+  const s=p.survey,n=s.resp.length;
+  const qs=s.qs.map(q=>{
+    if(q.type==='SCORE'){const v=s.resp.map(id=>3+id%3);return {...q,avg:n?sum(v)/n:null,count:n};}
+    return {...q,count:n,opinions:s.resp.map(id=>({dept:'소프트웨어학과',grade:1,text:'개선 의견 예시 '+id}))};
+  });
+  const sc=qs.filter(q=>q.type==='SCORE');
+  return {title:s.title,n,qs,avg:n&&sc.length?sum(sc.map(q=>q.avg))/sc.length:null};
+}
+function classify(rate,sat){
+  const t=[];
+  if(sat!==null&&sat<TH.lowSat)t.push(['bad','만족도 개선 검토']);
+  if(rate<TH.lowExec)t.push(['warn','예산 집행 현황 점검']);
+  if(rate>=TH.hiExec&&sat!==null&&sat>=TH.hiSat)t.push(['ok','긍정적 운영 사례']);
+  if(rate>=TH.hiExec&&sat!==null&&sat<TH.lowSat)t.push(['bad','집행률 높음·만족도 낮음']);
+  if(rate<TH.lowExec&&sat!==null&&sat>=TH.hiSat)t.push(['ok','집행률 낮음·만족도 높음']);
+  if(!t.length)t.push(['','특이사항 없음']);
+  return t;
+}
+
+/* ===== SVG 막대 그래프 ===== */
+function hbars(items,{max,fmt,w=560}){ // items:[{label,series:[{v,cls}]}]
+  const lh=items[0].series.length*14+14,H=items.length*lh+10,L=110;
+  let s=`<svg viewBox="0 0 ${w} ${H}" width="100%" role="img">`;
+  items.forEach((it,i)=>{
+    const y=i*lh+6;
+    s+=`<text x="${L-8}" y="${y+lh/2}" text-anchor="end">${it.label}</text>`;
+    it.series.forEach((se,j)=>{
+      const bw=max?Math.max(se.v/max*(w-L-90),se.v>0?2:0):0,yy=y+j*14;
+      s+=`<rect x="${L}" y="${yy}" width="${bw}" height="11" rx="2" fill="${se.color}"/><text class="m" x="${L+bw+6}" y="${yy+10}">${fmt(se.v)}</text>`;
+    });
+  });
+  return s+'</svg>';
+}
+const vbars=(items,{max,fmt,lines=[],w=460})=>{ // items:[{label,v,color}]
+  const H=230,T=20,B=40,bw=Math.min(70,(w-60)/items.length-20);
+  let s=`<svg viewBox="0 0 ${w} ${H}" width="100%" role="img">`;
+  const y=v=>H-B-(v/max)*(H-B-T);
+  lines.forEach(l=>s+=`<line x1="40" x2="${w-10}" y1="${y(l.v)}" y2="${y(l.v)}" stroke="var(--mut)" stroke-dasharray="4 3"/><text class="m" x="${w-12}" y="${y(l.v)-4}" text-anchor="end">${l.t}</text>`);
+  items.forEach((it,i)=>{
+    const x=50+i*((w-60)/items.length)+((w-60)/items.length-bw)/2;
+    s+=`<rect x="${x}" y="${y(it.v)}" width="${bw}" height="${H-B-y(it.v)}" rx="3" fill="${it.color}"/><text x="${x+bw/2}" y="${y(it.v)-5}" text-anchor="middle">${fmt(it.v)}</text><text class="m" x="${x+bw/2}" y="${H-B+16}" text-anchor="middle">${it.label}</text>`;
+  });
+  return s+`<line x1="40" x2="${w-10}" y1="${H-B}" y2="${H-B}" stroke="var(--bd)"/></svg>`;
+};
+const C={bud:'var(--pri2)',ap:'var(--pri)',pend:'var(--warn)'};
+
+/* ===== 화면 ===== */
+const state={view:'budget',pid:1};
+const cur=()=>PROJECTS.find(p=>p.id===state.pid);
+function vBudget(){
+  const p=cur(),b=budgetOf(p),ex=p.exps;
+  if(!p.budgets.length)return '<div class="card empty">조회 결과 없음</div>';
+  const max=Math.max(...b.rows.map(r=>r.budget));
+  const chart=hbars(b.rows.map(r=>({label:r.cat,series:[{v:r.budget,color:C.bud},{v:r.approved,color:C.ap}]})),{max,fmt:v=>(v/1e4).toLocaleString()+'만'});
+  const tbl=ex.length?`<div class="wrap"><table><tr><th>상태</th><th class="l">예산항목</th><th class="l">교수</th><th class="l">지출 주체</th><th>금액</th><th class="l">내용</th></tr>`+
+    ex.map(e=>`<tr><td class="l ${e.status}">${STATUS[e.status]}</td><td class="l">${e.cat}</td><td class="l">${e.prof}</td><td class="l">${e.ent}</td><td>${won(e.amount)}</td><td class="l">${e.desc}</td></tr>`).join('')+'</table></div>':'<div class="empty">조회 결과 없음</div>';
+  const grp=st=>{const l=ex.filter(e=>e.status===st);return l.length?`<ul class="op">${l.map(e=>`<li>${e.cat} · ${won(e.amount)} · ${e.desc}</li>`).join('')}</ul>`:'<div class="empty">조회 결과 없음</div>';};
+  return `<div class="cards">
+   <div class="kpi"><small>전체 배정 예산</small><b>${won(b.budget)}</b></div>
+   <div class="kpi"><small>승인 지출액</small><b>${won(b.approved)}</b></div>
+   <div class="kpi"><small>잔여 예산</small><b>${won(b.balance)}</b></div>
+   <div class="kpi"><small>집행률</small><b>${b.rate.toFixed(2)}%</b></div></div>
+   <div class="card"><h2>예산항목별 배정 · 승인 지출</h2>${chart}
+   <p class="note"><span style="color:var(--pri2)">■</span> 배정 예산 &nbsp;<span style="color:var(--pri)">■</span> 승인 지출</p></div>
+   <div class="card"><h2>항목별 집행 현황</h2><div class="wrap"><table><tr><th class="l">예산항목</th><th>배정 예산</th><th>승인 지출</th><th>잔액</th><th>집행률</th></tr>`+
+   b.rows.map(r=>`<tr><td class="l">${r.cat}</td><td>${won(r.budget)}</td><td>${won(r.approved)}</td><td>${won(r.balance)}</td><td>${r.rate.toFixed(2)}%</td></tr>`).join('')+`</table></div>
+   <p class="note">잔여 예산 = 배정 예산 − 승인 지출액 / 집행률 = 승인 지출액 ÷ 배정 예산 × 100. 승인(APPROVED) 지출만 집계하며 대기·반려는 제외합니다.</p></div>
+   <div class="grid2"><div class="card"><h2 class="tag-warn">승인 대기 지출 (${won(b.pending)})</h2>${grp('PENDING')}</div>
+   <div class="card"><h2 class="tag-bad">반려 지출 (${won(b.rejected)})</h2>${grp('REJECTED')}</div></div>
+   <div class="card"><h2>전체 지출 내역</h2>${tbl}</div>`;
+}
+function vSurvey(){
+  const p=cur(),s=surveyOf(p);
+  if(!s.n)return '<div class="card empty">조회 결과 없음</div>';
+  const sc=s.qs.filter(q=>q.type==='SCORE'),tx=s.qs.filter(q=>q.type==='TEXT');
+  const cmp=vbars(PROJECTS.map(q=>({label:q.name.replace(/^2026년 /,'').slice(0,10),v:surveyOf(q).avg||0,color:q.id===p.id?'var(--pri)':'var(--pri2)'})),{max:5,fmt:v=>v.toFixed(2),lines:[{v:3,t:'3.0 기준'}]});
+  return `<div class="cards"><div class="kpi"><small>${s.title}</small><b>${s.avg.toFixed(2)} / 5</b></div>
+   <div class="kpi"><small>완료 응답 수</small><b>${s.n}명</b></div></div>
+   <div class="grid2"><div class="card"><h2>사업별 평균 만족도 비교</h2>${cmp}</div>
+   <div class="card"><h2>문항별 평균 점수 · 응답 수</h2><div class="wrap"><table><tr><th class="l">문항</th><th>평균</th><th>응답 수</th></tr>`+
+   sc.map(q=>`<tr><td class="l">${q.t}</td><td>${q.avg.toFixed(2)}</td><td>${q.count}</td></tr>`).join('')+
+   tx.map(q=>`<tr><td class="l">${q.t}</td><td class="m">(주관식)</td><td>${q.count}</td></tr>`).join('')+`</table></div></div></div>
+   <div class="card"><h2>주관식 개선 의견</h2>`+
+   tx.map(q=>`<div class="wrap"><table><tr><th class="l">학과</th><th>학년</th><th class="l">의견</th></tr>`+q.opinions.map(o=>`<tr><td class="l">${o.dept}</td><td>${o.grade}</td><td class="l">${o.text}</td></tr>`).join('')+'</table></div>').join('')+
+   `<p class="note">점수형(SCORE) 문항만 평균을 계산하며, 모든 문항에 답한 완료 응답만 집계합니다. 응답 수가 적으면 결과를 참고용으로만 보세요.</p></div>`;
+}
+function vTotal(){
+  const rows=PROJECTS.map(p=>{const b=budgetOf(p),s=surveyOf(p);return {p,rate:b.rate,sat:s.avg,n:s.n,tags:classify(b.rate,s.avg)};});
+  if(!rows.length)return '<div class="card empty">조회 결과 없음</div>';
+  const nm=r=>r.p.name.replace(/^2026년 /,'').slice(0,10);
+  const g1=vbars(rows.map(r=>({label:nm(r),v:r.rate,color:'var(--pri)'})),{max:100,fmt:v=>v.toFixed(1)+'%',lines:[{v:50,t:'50%'},{v:80,t:'80%'}]});
+  const g2=vbars(rows.map(r=>({label:nm(r),v:r.sat||0,color:'var(--ok)'})),{max:5,fmt:v=>v.toFixed(2),lines:[{v:3,t:'3.0'},{v:4,t:'4.0'}]});
+  return `<div class="grid2"><div class="card"><h2>사업별 집행률</h2>${g1}</div><div class="card"><h2>사업별 평균 만족도</h2>${g2}</div></div>
+   <div class="card"><h2>집행률 · 만족도 통합 조회 및 자동 분류</h2><div class="wrap"><table><tr><th class="l">사업</th><th>집행률</th><th>평균 만족도</th><th>응답 수</th><th class="l">분류</th><th class="l">상세 이동</th></tr>`+
+   rows.map(r=>`<tr><td class="l">${r.p.name}</td><td>${r.rate.toFixed(2)}%</td><td>${r.sat===null?'-':r.sat.toFixed(2)}</td><td>${r.n}</td>
+   <td class="l">${r.tags.map(t=>`<span class="chip tag-${t[0]}">${t[1]}</span>`).join(' ')}</td>
+   <td class="l"><button class="btn" data-go="budget" data-id="${r.p.id}">예산 상세</button> <button class="btn" data-go="survey" data-id="${r.p.id}">설문 의견</button></td></tr>`).join('')+`</table></div>
+   <p class="note">분류 기준(초기값): 만족도 3.0 미만 → 만족도 개선 검토 / 집행률 50% 미만 → 예산 집행 현황 점검 / 집행률 80% 이상 및 만족도 4.0 이상 → 긍정적 운영 사례. 집행률은 승인 지출만 반영합니다.</p></div>`;
+}
+const VIEWS={budget:vBudget,survey:vSurvey,total:vTotal};
+function render(){
+  document.querySelectorAll('#nav button').forEach(b=>b.classList.toggle('on',b.dataset.v===state.view));
+  document.getElementById('sel').disabled=state.view==='total';
+  document.getElementById('sel').value=state.pid;
+  document.getElementById('view').innerHTML=VIEWS[state.view]();
+}
+document.getElementById('sel').innerHTML=PROJECTS.map(p=>`<option value="${p.id}">${p.name}</option>`).join('');
+document.getElementById('sel').onchange=e=>{state.pid=+e.target.value;render();};
+document.getElementById('nav').onclick=e=>{if(e.target.dataset.v){state.view=e.target.dataset.v;render();}};
+document.getElementById('view').onclick=e=>{const d=e.target.dataset;if(d.go){state.view=d.go;state.pid=+d.id;render();window.scrollTo(0,0);}};
+render();
+</script>
+</body>
+</html>
