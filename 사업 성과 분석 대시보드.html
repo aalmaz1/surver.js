@@ -42,8 +42,10 @@ ul.op{margin:6px 0 0;padding-left:18px}
 </head>
 <body>
 <header>
-  <h1>사업 성과 분석</h1>
+  <div style="display:flex; flex-wrap:wrap; gap:8px; align-items:center;"><h1>사업 성과 분석</h1>
+  <span class="chip" style="font-weight:600;">관리자 · 사업 담당자 조회 화면</span></div>
   <nav id="nav">
+    <button data-v="overview">전체 사업 현황</button>
     <button data-v="budget">사업별 예산 분석</button>
     <button data-v="survey">학생 만족도 분석</button>
     <button data-v="total">사업 성과 종합</button>
@@ -106,6 +108,7 @@ function surveyOf(p){ // 모든 문항에 답한 완료 응답만 집계 (시드
 }
 function classify(rate,sat){
   const t=[];
+  if(sat!==null&&sat<TH.lowSat&&rate<TH.lowExec)t.push(['bad','집행률·만족도 동시 점검']);
   if(sat!==null&&sat<TH.lowSat)t.push(['bad','만족도 개선 검토']);
   if(rate<TH.lowExec)t.push(['warn','예산 집행 현황 점검']);
   if(rate>=TH.hiExec&&sat!==null&&sat>=TH.hiSat)t.push(['ok','긍정적 운영 사례']);
@@ -113,6 +116,22 @@ function classify(rate,sat){
   if(rate<TH.lowExec&&sat!==null&&sat>=TH.hiSat)t.push(['ok','집행률 낮음·만족도 높음']);
   if(!t.length)t.push(['','특이사항 없음']);
   return t;
+}
+/* 사업별 개선 필요 사항 자동 진단 (4번: 분석 결과를 바탕으로 개선 필요 사항 제시) */
+function advice(rate,sat){
+  if(sat!==null&&rate>=TH.hiExec&&sat<TH.lowSat)
+    return '집행률은 높지만 만족도가 낮은 사업입니다. 주관식 개선 의견(Q11)을 반영해 커리큘럼·강사진·운영 방식 전반의 개선이 필요합니다.';
+  if(sat!==null&&rate<TH.lowExec&&sat>=TH.hiSat)
+    return '만족도는 높지만 집행률이 낮은 사업입니다. 예산 조기 집행 계획을 수립하고 불용(未집행) 항목의 재배정을 검토하세요.';
+  if(sat!==null&&rate<TH.lowExec&&sat<TH.lowSat)
+    return '집행률과 만족도가 모두 낮은 사업입니다. 예산 구조와 프로그램 내용을 함께 전면 재검토하고, 다음 학기 사업 계획 수립 시 우선 개선 대상으로 지정하세요.';
+  if(rate<TH.lowExec)
+    return '예산 집행률이 50% 미만입니다. 항목별 집행 지연 원인을 파악하고, 집행 계획 및 불용 예산 반납 여부를 점검하세요.';
+  if(sat!==null&&sat<TH.lowSat)
+    return '학생 만족도가 3.0점 미만입니다. 주관식 의견을 분석해 운영상 불만 요인을 도출하고 개선 과제를 확정하세요.';
+  if(rate>=TH.hiExec&&sat!==null&&sat>=TH.hiSat)
+    return '집행률 80% 이상·만족도 4.0점 이상의 우수 사업입니다. 성과 확산 대상으로 지정해 다른 사업의 벤치마킹 사례로 공유하세요.';
+  return '특이사항이 없습니다. 현행 운영을 유지하면서 집행률과 만족도를 정기적으로 모니터링하세요.';
 }
 
 /* ===== SVG 막대 그래프 ===== */
@@ -141,12 +160,14 @@ const vbars=(items,{max,fmt,lines=[],w=460})=>{ // items:[{label,v,color}]
   return s+`<line x1="40" x2="${w-10}" y1="${H-B}" y2="${H-B}" stroke="var(--bd)"/></svg>`;
 };
 const C={bud:'var(--pri2)',ap:'var(--pri)',pend:'var(--warn)'};
+const nm=r=>r.p.name.replace(/^2026년 /,'').slice(0,10); // 차트용 짧은 사업명
 
 /* ===== 화면 ===== */
-const state={view:'budget',pid:1};
+const state={view:'overview',pid:1};
 const cur=()=>PROJECTS.find(p=>p.id===state.pid);
 function vBudget(){
-  const p=cur(),b=budgetOf(p),ex=p.exps;
+  const p=cur(); if(!p) return '<div class="card empty">조회 결과 없음</div>';
+  const b=budgetOf(p),ex=p.exps;
   if(!p.budgets.length)return '<div class="card empty">조회 결과 없음</div>';
   const max=Math.max(...b.rows.map(r=>r.budget));
   const chart=hbars(b.rows.map(r=>({label:r.cat,series:[{v:r.budget,color:C.bud},{v:r.approved,color:C.ap}]})),{max,fmt:v=>(v/1e4).toLocaleString()+'만'});
@@ -168,24 +189,51 @@ function vBudget(){
    <div class="card"><h2>전체 지출 내역</h2>${tbl}</div>`;
 }
 function vSurvey(){
-  const p=cur(),s=surveyOf(p);
+  const p=cur(); if(!p) return '<div class="card empty">조회 결과 없음</div>';
+  const s=surveyOf(p);
   if(!s.n)return '<div class="card empty">조회 결과 없음</div>';
   const sc=s.qs.filter(q=>q.type==='SCORE'),tx=s.qs.filter(q=>q.type==='TEXT');
   const cmp=vbars(PROJECTS.map(q=>({label:q.name.replace(/^2026년 /,'').slice(0,10),v:surveyOf(q).avg||0,color:q.id===p.id?'var(--pri)':'var(--pri2)'})),{max:5,fmt:v=>v.toFixed(2),lines:[{v:3,t:'3.0 기준'}]});
-  return `<div class="cards"><div class="kpi"><small>${s.title}</small><b>${s.avg.toFixed(2)} / 5</b></div>
+  return `<div class="cards"><div class="kpi"><small>${s.title}</small><b>${s.avg===null?'-':s.avg.toFixed(2)+' / 5'}</b></div>
    <div class="kpi"><small>완료 응답 수</small><b>${s.n}명</b></div></div>
    <div class="grid2"><div class="card"><h2>사업별 평균 만족도 비교</h2>${cmp}</div>
    <div class="card"><h2>문항별 평균 점수 · 응답 수</h2><div class="wrap"><table><tr><th class="l">문항</th><th>평균</th><th>응답 수</th></tr>`+
    sc.map(q=>`<tr><td class="l">${q.t}</td><td>${q.avg.toFixed(2)}</td><td>${q.count}</td></tr>`).join('')+
    tx.map(q=>`<tr><td class="l">${q.t}</td><td class="m">(주관식)</td><td>${q.count}</td></tr>`).join('')+`</table></div></div></div>
    <div class="card"><h2>주관식 개선 의견</h2>`+
-   tx.map(q=>`<div class="wrap"><table><tr><th class="l">학과</th><th>학년</th><th class="l">의견</th></tr>`+q.opinions.map(o=>`<tr><td class="l">${o.dept}</td><td>${o.grade}</td><td class="l">${o.text}</td></tr>`).join('')+'</table></div>').join('')+
+   (tx.length?tx.map(q=>`<div class="wrap"><table><tr><th class="l">학과</th><th>학년</th><th class="l">의견</th></tr>`+q.opinions.map(o=>`<tr><td class="l">${o.dept}</td><td>${o.grade}</td><td class="l">${o.text}</td></tr>`).join('')+'</table></div>').join(''):'<div class="empty">조회 결과 없음</div>')+
    `<p class="note">점수형(SCORE) 문항만 평균을 계산하며, 모든 문항에 답한 완료 응답만 집계합니다. 응답 수가 적으면 결과를 참고용으로만 보세요.</p></div>`;
+}
+function vOverview(){
+  const rows=PROJECTS.map(p=>{const b=budgetOf(p),s=surveyOf(p);return {p,budget:b.budget,approved:b.approved,balance:b.balance,rate:b.rate,pending:b.pending,rejected:b.rejected,sat:s.avg,n:s.n};});
+  if(!rows.length)return '<div class="card empty">조회 결과 없음</div>';
+  const totBud=sum(rows.map(r=>r.budget)),totApp=sum(rows.map(r=>r.approved));
+  const totRate=totBud===0?0:totApp/totBud*100;
+  const satRows=rows.filter(r=>r.sat!==null);
+  const avgSat=satRows.length?sum(satRows.map(r=>r.sat))/satRows.length:null;
+  const totN=sum(rows.map(r=>r.n)),totPend=sum(rows.map(r=>r.pending)),totRej=sum(rows.map(r=>r.rejected));
+  const g1=vbars(rows.map(r=>({label:nm(r),v:r.rate,color:'var(--pri)'})),{max:100,fmt:v=>v.toFixed(1)+'%',lines:[{v:50,t:'50%'},{v:80,t:'80%'}]});
+  const g2=vbars(rows.map(r=>({label:nm(r),v:r.sat||0,color:'var(--ok)'})),{max:5,fmt:v=>v.toFixed(2),lines:[{v:3,t:'3.0'},{v:4,t:'4.0'}]});
+  return `<div class="cards">
+   <div class="kpi"><small>전체 배정 예산 (모든 사업)</small><b>${won(totBud)}</b></div>
+   <div class="kpi"><small>전체 승인 지출액</small><b>${won(totApp)}</b></div>
+   <div class="kpi"><small>전체 잔여 예산</small><b>${won(totBud-totApp)}</b></div>
+   <div class="kpi"><small>전체 예산 집행률 (자동 계산)</small><b>${totRate.toFixed(2)}%</b></div></div>
+   <div class="cards">
+   <div class="kpi"><small>전체 사업 평균 만족도</small><b>${avgSat===null?'-':avgSat.toFixed(2)+' / 5'}</b></div>
+   <div class="kpi"><small>총 설문 참여 인원 (완료 응답)</small><b>${totN}명</b></div>
+   <div class="kpi"><small>사업 수</small><b>${rows.length}개</b></div>
+   <div class="kpi"><small>대기·반려 지출</small><b>${won(totPend)} / ${won(totRej)}</b></div></div>
+   <div class="grid2"><div class="card"><h2>사업별 예산 집행률 비교</h2>${g1}</div>
+   <div class="card"><h2>사업별 평균 만족도 비교</h2>${g2}</div></div>
+   <div class="card"><h2>사업별 집행률 · 만족도 한눈에 비교</h2><div class="wrap"><table><tr><th class="l">사업</th><th>배정 예산</th><th>승인 지출</th><th>잔여 예산</th><th>집행률</th><th>평균 만족도</th><th>응답 수</th><th class="l">상세 이동</th></tr>`+
+   rows.map(r=>`<tr><td class="l">${r.p.name}</td><td>${won(r.budget)}</td><td>${won(r.approved)}</td><td>${won(r.balance)}</td><td>${r.rate.toFixed(2)}%</td><td>${r.sat===null?'-':r.sat.toFixed(2)}</td><td>${r.n}</td>
+   <td class="l"><button class="btn" data-go="budget" data-id="${r.p.id}">예산</button> <button class="btn" data-go="survey" data-id="${r.p.id}">설문</button> <button class="btn" data-go="total" data-id="${r.p.id}">종합</button></td></tr>`).join('')+`</table></div>
+   <p class="note">전체 집행률 = 전체 승인 지출액 ÷ 전체 배정 예산 × 100 (자동 계산). 만족도는 완료 응답(모든 문항 답변)만 집계하며, 집행률은 승인(APPROVED) 지출만 반영합니다.</p></div>`;
 }
 function vTotal(){
   const rows=PROJECTS.map(p=>{const b=budgetOf(p),s=surveyOf(p);return {p,rate:b.rate,sat:s.avg,n:s.n,tags:classify(b.rate,s.avg)};});
   if(!rows.length)return '<div class="card empty">조회 결과 없음</div>';
-  const nm=r=>r.p.name.replace(/^2026년 /,'').slice(0,10);
   const g1=vbars(rows.map(r=>({label:nm(r),v:r.rate,color:'var(--pri)'})),{max:100,fmt:v=>v.toFixed(1)+'%',lines:[{v:50,t:'50%'},{v:80,t:'80%'}]});
   const g2=vbars(rows.map(r=>({label:nm(r),v:r.sat||0,color:'var(--ok)'})),{max:5,fmt:v=>v.toFixed(2),lines:[{v:3,t:'3.0'},{v:4,t:'4.0'}]});
   return `<div class="grid2"><div class="card"><h2>사업별 집행률</h2>${g1}</div><div class="card"><h2>사업별 평균 만족도</h2>${g2}</div></div>
@@ -193,15 +241,22 @@ function vTotal(){
    rows.map(r=>`<tr><td class="l">${r.p.name}</td><td>${r.rate.toFixed(2)}%</td><td>${r.sat===null?'-':r.sat.toFixed(2)}</td><td>${r.n}</td>
    <td class="l">${r.tags.map(t=>`<span class="chip tag-${t[0]}">${t[1]}</span>`).join(' ')}</td>
    <td class="l"><button class="btn" data-go="budget" data-id="${r.p.id}">예산 상세</button> <button class="btn" data-go="survey" data-id="${r.p.id}">설문 의견</button></td></tr>`).join('')+`</table></div>
-   <p class="note">분류 기준(초기값): 만족도 3.0 미만 → 만족도 개선 검토 / 집행률 50% 미만 → 예산 집행 현황 점검 / 집행률 80% 이상 및 만족도 4.0 이상 → 긍정적 운영 사례. 집행률은 승인 지출만 반영합니다.</p></div>`;
+   <p class="note">분류 기준(초기값): 만족도 3.0 미만 → 만족도 개선 검토 / 집행률 50% 미만 → 예산 집행 현황 점검 / 집행률 80% 이상 및 만족도 4.0 이상 → 긍정적 운영 사례 / 집행률 80% 이상·만족도 3.0 미만 → 집행률 높음·만족도 낮음 / 집행률 50% 미만·만족도 3.0 미만 → 집행률·만족도 동시 점검. 집행률은 승인 지출만 반영합니다.</p></div>
+   <div class="card"><h2>사업별 개선 필요 사항 (분석 결과 자동 진단)</h2>`+
+   rows.map(r=>`<div style="border:1px solid var(--bd); border-left:4px solid ${r.rate<TH.lowExec||(r.sat!==null&&r.sat<TH.lowSat)?'var(--bad)':'var(--ok)'}; border-radius:10px; padding:12px 14px; margin-bottom:10px;">
+     <div style="display:flex; flex-wrap:wrap; gap:8px; align-items:center; margin-bottom:6px;"><b>${r.p.name}</b>
+     ${r.tags.map(t=>`<span class="chip tag-${t[0]}">${t[1]}</span>`).join(' ')}</div>
+     <p class="note" style="margin:0;">${advice(r.rate,r.sat)}</p></div>`).join('')+
+   `<p class="note">진단 기준: 집행률 50% 미만=집행 점검 / 80% 이상=고집행, 만족도 3.0 미만=개선 필요 / 4.0 이상=우수. 각 사업의 주관식 의견과 항목별 지출 내역을 함께 검토해 개선 계획을 수립하세요.</p></div>`;
 }
-const VIEWS={budget:vBudget,survey:vSurvey,total:vTotal};
+const VIEWS={overview:vOverview,budget:vBudget,survey:vSurvey,total:vTotal};
 function render(){
   document.querySelectorAll('#nav button').forEach(b=>b.classList.toggle('on',b.dataset.v===state.view));
-  document.getElementById('sel').disabled=state.view==='total';
+  document.getElementById('sel').disabled=state.view==='total'||state.view==='overview';
   document.getElementById('sel').value=state.pid;
   document.getElementById('view').innerHTML=VIEWS[state.view]();
 }
+if(PROJECTS.length&&!PROJECTS.some(p=>p.id===state.pid))state.pid=PROJECTS[0].id;
 document.getElementById('sel').innerHTML=PROJECTS.map(p=>`<option value="${p.id}">${p.name}</option>`).join('');
 document.getElementById('sel').onchange=e=>{state.pid=+e.target.value;render();};
 document.getElementById('nav').onclick=e=>{if(e.target.dataset.v){state.view=e.target.dataset.v;render();}};
