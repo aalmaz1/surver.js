@@ -1945,7 +1945,8 @@
         const execRate = totalBud === 0 ? 0 : (totalApp / totalBud * 100);
 
         const pSurveys = q10.filter(s => s.project_name === pName && s.average_score !== null);
-        const avgScore = pSurveys.length ? (pSurveys.reduce((s, x) => s + x.average_score, 0) / pSurveys.length) : null;
+        // average_score는 mysql2 설정상 DECIMAL 문자열("4.20")로 올 수 있으므로 Number()로 반드시 형변환한다.
+        const avgScore = pSurveys.length ? (pSurveys.reduce((s, x) => s + Number(x.average_score), 0) / pSurveys.length) : null;
 
         // KPI 카드
         $("#dashKpiRow").innerHTML = `
@@ -2025,29 +2026,51 @@
           $("#dashSurveyChart").innerHTML = sSvg;
         }
 
-        // 3) 성과 매트릭스 진단 (세련된 카드 기교)
-        let tagHtml = "";
-        if (execRate >= 80 && avgScore && avgScore >= 4.0) {
-          tagHtml = '<span class="tag tag-success">우수: 집행률 양호 및 만족도 최상 (성과 확산 대상)</span>';
-        } else if (execRate < 50 && avgScore && avgScore >= 4.0) {
-          tagHtml = '<span class="tag tag-warning">점검: 만족도는 높으나 예산 집행 부진 (예산 조기 집행 독려 필요)</span>';
-        } else if (execRate >= 80 && avgScore && avgScore < 3.0) {
-          tagHtml = '<span class="tag tag-danger">주의: 집행률은 높으나 학생 만족도 저조 (교육과정 및 강사진 개선 필요)</span>';
+        // 3) 성과 매트릭스 진단 (집행률 × 만족도 4분면)
+        //    기준: 집행률 80% 이상=고집행, 50% 미만=점검 / 만족도 4.0 이상=우수, 3.0 미만=개선
+        //    분류 명칭은 전체 현황(diag)과 동일하게 맞춘다.
+        const satOk = avgScore !== null && avgScore !== undefined;
+        let diagTag = "", diagLabel = "", diagNeed = "";
+        if (!satOk) {
+          diagTag = "tag-INFO"; diagLabel = "만족도 평가 전";
+          diagNeed = "점수형 문항의 설문 응답이 없습니다. 설문 진행 및 완료 여부를 확인하세요.";
+        } else if (execRate < 50) {
+          // 집행률 50% 미만은 만족도와 무관하게 우선 '예산 집행 점검'으로 분류한다.
+          diagTag = "tag-warning"; diagLabel = "예산 집행 점검";
+          diagNeed = avgScore >= 4.0
+            ? "만족도(4.0점↑)는 양호하나 집행이 부진합니다. 항목별 집행 지연 원인 파악, 조기 집행 계획 및 불용 항목 재배정 검토"
+            : "항목별 집행 지연 원인 파악 및 집행 계획 점검";
+        } else if (execRate >= 80 && avgScore < 3.0) {
+          diagTag = "tag-danger"; diagLabel = "집행률 높음·만족도 낮음";
+          diagNeed = "주관식 의견을 반영한 커리큘럼·운영 방식 개선 필요";
+        } else if (execRate >= 80 && avgScore >= 4.0) {
+          diagTag = "tag-success"; diagLabel = "우수 사업";
+          diagNeed = "성과 확산 대상 — 타 사업 벤치마킹 사례로 공유 권장";
+        } else if (avgScore < 3.0) {
+          diagTag = "tag-danger"; diagLabel = "만족도 개선 검토";
+          diagNeed = "주관식 의견 분석을 통한 개선 과제 도출 필요";
         } else {
-          tagHtml = '<span class="tag tag-INFO">정상: 사업 운영 진행 중 (특이 결함 없음)</span>';
+          diagTag = "tag-INFO"; diagLabel = "일반 운영";
+          diagNeed = "현행 유지, 정기 모니터링 권장";
         }
 
         $("#dashMatrixWrap").innerHTML = `
-      <div style="background:var(--bg-main); border:1px solid var(--border-light); border-left:4px solid var(--primary); border-radius:8px; padding:20px;">
-        <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:12px;">
-          <h3 style="font-size:15px; font-weight:700;">${pName} 종합 평가 결과</h3>
-          ${tagHtml}
-        </div>
-        <p style="font-size:14px; color:var(--text-muted); line-height:1.7;">
-          현재 집행률은 <strong>${pct(execRate)}</strong>이며, 학생 만족도 평균은 <strong>${avgScore ? avgScore.toFixed(2) + "점" : "미집계"}</strong>입니다.<br>
-          SW중심대학사업 종합 성과 지표 달성을 위해 미집행 비목 잔액 현황을 정기 모니터링하고, 주관식 학생 개선의견(Q11)을 다음 학기 신규 프로그램 기획에 반영할 것을 권장합니다.
-        </p>
-      </div>
+      <div class="table-wrap"><table>
+        <thead><tr><th class="l">사업</th><th>집행률</th><th>평균 만족도</th><th class="l">자동 분류</th><th class="l">개선 필요 사항</th></tr></thead>
+        <tbody>
+          <tr>
+            <td class="l"><b>${pName}</b></td>
+            <td style="font-weight:700; color:${execRate < 50 ? "var(--warning)" : "var(--primary)"};">${pct(execRate)}</td>
+            <td style="font-weight:700; color:${satOk && avgScore >= 4.0 ? "var(--success)" : "inherit"};">${satOk ? avgScore.toFixed(2) + "점" : "평가 전"}</td>
+            <td class="l"><span class="tag ${diagTag}">${diagLabel}</span></td>
+            <td class="l">${diagNeed}</td>
+          </tr>
+        </tbody>
+      </table></div>
+      <p style="font-size:13px; color:var(--text-muted); margin-top:10px;">
+        4분면 기준: 집행률 80% 이상=고집행 / 50% 미만=점검, 만족도 4.0점 이상=우수 / 3.0점 미만=개선.
+        현재 <b>${pName}</b>은(는) 집행률 <b>${pct(execRate)}</b>, 만족도 <b>${satOk ? avgScore.toFixed(2) + "점" : "미집계"}</b>으로 자동 분류 결과 <b>${diagLabel}</b>입니다.
+      </p>
     `;
       }
 
@@ -2161,16 +2184,21 @@
         }
 
         // 3) 사업별 통합 비교 + 개선 필요 사항 자동 진단
+        // 4분면 진단: 집행률 80% 이상=고집행 / 50% 미만=점검, 만족도 4.0 이상=우수 / 3.0 미만=개선
+        // 단일 사업 선택 화면과 동일한 우선순위·명칭을 사용한다.
         const diag = r => {
           const sat = (satRows.find(s => s.name === r.name) || {}).avg;
           if (sat === undefined) return { tag: "tag-INFO", label: "만족도 평가 전", need: "점수형 문항의 설문 응답이 없습니다. 설문 진행 및 완료 여부를 확인하세요." };
-          if (sat !== undefined && r.rate >= 80 && sat < 3.0) return { tag: "tag-danger", label: "집행률 높음·만족도 낮음", need: "주관식 의견을 반영한 커리큘럼·운영 방식 개선 필요" };
-          if (sat !== undefined && r.rate < 50 && sat >= 4.0) return { tag: "tag-warning", label: "집행률 낮음·만족도 높음", need: "예산 조기 집행 계획 수립 및 불용 항목 재배정 검토" };
-          if (sat !== undefined && r.rate < 50 && sat < 3.0) return { tag: "tag-danger", label: "집행률·만족도 동시 점검", need: "예산 구조와 프로그램 내용의 전면 재검토 필요" };
-          if (r.rate >= 80 && sat !== undefined && sat >= 4.0) return { tag: "tag-success", label: "우수 사업", need: "성과 확산 대상 — 타 사업 벤치마킹 사례로 공유 권장" };
-          if (r.rate < 50) return { tag: "tag-warning", label: "예산 집행 점검", need: "항목별 집행 지연 원인 파악 및 집행 계획 점검" };
-          if (sat !== undefined && sat < 3.0) return { tag: "tag-danger", label: "만족도 개선 검토", need: "주관식 의견 분석을 통한 개선 과제 도출 필요" };
-          return { tag: "tag-INFO", label: "정상 운영", need: "현행 유지, 정기 모니터링 권장" };
+          if (r.rate < 50) return {
+            tag: "tag-warning", label: "예산 집행 점검",
+            need: sat >= 4.0
+              ? "만족도(4.0점↑)는 양호하나 집행이 부진합니다. 항목별 집행 지연 원인 파악, 조기 집행 계획 및 불용 항목 재배정 검토"
+              : "항목별 집행 지연 원인 파악 및 집행 계획 점검"
+          };
+          if (r.rate >= 80 && sat < 3.0) return { tag: "tag-danger", label: "집행률 높음·만족도 낮음", need: "주관식 의견을 반영한 커리큘럼·운영 방식 개선 필요" };
+          if (r.rate >= 80 && sat >= 4.0) return { tag: "tag-success", label: "우수 사업", need: "성과 확산 대상 — 타 사업 벤치마킹 사례로 공유 권장" };
+          if (sat < 3.0) return { tag: "tag-danger", label: "만족도 개선 검토", need: "주관식 의견 분석을 통한 개선 과제 도출 필요" };
+          return { tag: "tag-INFO", label: "일반 운영", need: "현행 유지, 정기 모니터링 권장" };
         };
         $("#dashMatrixWrap").innerHTML = `
       <div class="table-wrap"><table>
